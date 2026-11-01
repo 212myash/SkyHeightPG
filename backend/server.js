@@ -9,6 +9,15 @@ const connectDB = require("./config/db");
 
 // Route imports
 const authRoutes = require("./routes/authRoutes");
+const roomRoutes = require("./routes/roomRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
+const meterRoutes = require("./routes/meterRoutes");
+const billRoutes = require("./routes/billRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const complaintRoutes = require("./routes/complaintRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 const app = express();
 
@@ -26,6 +35,15 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/tenants", tenantRoutes);
+app.use("/api/meters", meterRoutes);
+app.use("/api/bills", billRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // 404 Not Found Handler
 app.use((req, res) => {
