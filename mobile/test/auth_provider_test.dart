@@ -69,5 +69,58 @@ void main() {
       expect(authedTenant.isOwner, isFalse);
       expect(authedTenant.isTenant, isTrue);
     });
+
+    test('Phase 6: Offline cached session preserves credentials without server-verified status', () {
+      const initial = AuthState();
+
+      const cachedUser = UserModel(
+        id: 'user_cached_1',
+        name: 'Cached Tenant',
+        email: 'cached@pg.com',
+        phone: '9876543212',
+        role: 'TENANT',
+      );
+
+      final offlineState = initial.copyWith(
+        status: AuthStatus.offlineCached,
+        user: cachedUser,
+        token: 'cached_token_789',
+        isServerVerified: false,
+        errorMessage: 'Network unavailable. Operating in offline mode.',
+      );
+
+      // Verifies condition 3: has active session for navigation, but NOT treated as server-authenticated
+      expect(offlineState.isOfflineCached, isTrue);
+      expect(offlineState.isServerVerified, isFalse);
+      expect(offlineState.isAuthenticated, isFalse);
+      expect(offlineState.hasActiveSession, isTrue);
+      expect(offlineState.user?.name, 'Cached Tenant');
+      expect(offlineState.token, 'cached_token_789');
+    });
+
+    test('Phase 6: Server authenticated session verifies flags correctly', () {
+      const initial = AuthState();
+
+      const serverUser = UserModel(
+        id: 'user_server_1',
+        name: 'Verified Owner',
+        email: 'owner@pg.com',
+        phone: '9876543210',
+        role: 'OWNER',
+      );
+
+      final verifiedState = initial.copyWith(
+        status: AuthStatus.authenticated,
+        user: serverUser,
+        token: 'verified_token_999',
+        isServerVerified: true,
+      );
+
+      expect(verifiedState.isAuthenticated, isTrue);
+      expect(verifiedState.isServerVerified, isTrue);
+      expect(verifiedState.isOfflineCached, isFalse);
+      expect(verifiedState.hasActiveSession, isTrue);
+      expect(verifiedState.isOwner, isTrue);
+    });
   });
 }

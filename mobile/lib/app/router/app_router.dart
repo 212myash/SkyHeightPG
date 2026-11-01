@@ -7,6 +7,10 @@ import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/owner/presentation/owner_main_screen.dart';
 import '../../features/owner/presentation/owner_settings_screen.dart';
+import '../../features/owner/presentation/owner_meter_screen.dart';
+import '../../features/owner/presentation/owner_billing_screen.dart';
+import '../../features/owner/presentation/owner_complaints_screen.dart';
+import '../../features/owner/presentation/owner_expenses_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/tenant/presentation/tenant_main_screen.dart';
 
@@ -33,7 +37,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: notifier,
     redirect: (BuildContext context, GoRouterState state) {
       final auth = ref.read(authProvider);
-      final isAuth = auth.isAuthenticated;
+      final isAuth = auth.hasActiveSession;
       final location = state.matchedLocation;
 
       final isSplash = location == '/splash';
@@ -91,6 +95,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/owner/settings',
         builder: (context, state) => const OwnerSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/owner/meter',
+        builder: (context, state) => const OwnerMeterScreen(),
+      ),
+      GoRoute(
+        path: '/owner/billing',
+        builder: (context, state) => const OwnerBillingScreen(),
+      ),
+      GoRoute(
+        path: '/owner/complaints',
+        builder: (context, state) => const OwnerComplaintsScreen(),
+      ),
+      GoRoute(
+        path: '/owner/expenses',
+        builder: (context, state) => const OwnerExpensesScreen(),
       ),
       GoRoute(
         path: '/tenant',

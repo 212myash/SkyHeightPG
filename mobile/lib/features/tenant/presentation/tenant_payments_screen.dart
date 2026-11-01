@@ -68,11 +68,20 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
   }
 
   void _showSubmitUpiDialog() {
+    if (_pendingBills.isEmpty) {
+      AppDialog.showSnackBar(
+        context,
+        'No pending bills! You have no outstanding dues to pay.',
+      );
+      return;
+    }
+
     final formKey = GlobalKey<FormState>();
-    final amountController = TextEditingController();
+    String selectedBillId = _pendingBills.first['_id'].toString();
+    final firstDue = ((_pendingBills.first['totalAmount'] ?? 0) - (_pendingBills.first['paidAmount'] ?? 0)).clamp(0, double.infinity);
+    final amountController = TextEditingController(text: firstDue > 0 ? firstDue.toString() : '');
     final utrController = TextEditingController();
     final notesController = TextEditingController();
-    String? selectedBillId = _pendingBills.isNotEmpty ? _pendingBills.first['_id'].toString() : null;
     bool isSubmitting = false;
 
     showModalBottomSheet(
@@ -133,9 +142,14 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
                           );
                         }).toList(),
                         onChanged: (val) {
-                          setModalState(() {
-                            selectedBillId = val;
-                          });
+                          if (val != null) {
+                            setModalState(() {
+                              selectedBillId = val;
+                              final match = _pendingBills.firstWhere((b) => b['_id'].toString() == val);
+                              final due = ((match['totalAmount'] ?? 0) - (match['paidAmount'] ?? 0)).clamp(0, double.infinity);
+                              amountController.text = due > 0 ? due.toString() : '';
+                            });
+                          }
                         },
                       ),
                       const SizedBox(height: 14),
@@ -178,13 +192,11 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
                         setModalState(() => isSubmitting = true);
 
                         final payload = <String, dynamic>{
+                          'billId': selectedBillId,
                           'amount': double.tryParse(amountController.text.trim()) ?? 0,
                           'transactionReference': utrController.text.trim(),
                           'notes': notesController.text.trim(),
                         };
-                        if (selectedBillId != null) {
-                          payload['billId'] = selectedBillId;
-                        }
 
                         try {
                           final api = ref.read(apiClientProvider);

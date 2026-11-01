@@ -63,10 +63,21 @@ class _OwnerSettingsScreenState extends ConsumerState<OwnerSettingsScreen> {
         if (res.data != null && res.data['success'] == true) {
           final s = res.data['data'] as Map<String, dynamic>? ?? {};
           _pgNameController.text = s['pgName'] ?? '';
-          _addressController.text = s['address'] ?? '';
+          final rawAddress = s['address'];
+          if (rawAddress is Map) {
+            final parts = [
+              rawAddress['street'],
+              rawAddress['city'],
+              rawAddress['state'],
+              rawAddress['pincode'],
+            ].where((p) => p != null && p.toString().trim().isNotEmpty).join(', ');
+            _addressController.text = parts;
+          } else {
+            _addressController.text = rawAddress?.toString() ?? '';
+          }
           _contactController.text = s['contactNumber'] ?? '';
           _electricityRateController.text = (s['electricityRatePerUnit'] ?? 10).toString();
-          _dueDateController.text = (s['defaultDueDate'] ?? 5).toString();
+          _dueDateController.text = (s['defaultDueDateDay'] ?? s['defaultDueDate'] ?? 5).toString();
           _upiIdController.text = s['upiId'] ?? '';
           setState(() => _isLoading = false);
         } else {
@@ -97,10 +108,10 @@ class _OwnerSettingsScreenState extends ConsumerState<OwnerSettingsScreen> {
         ApiEndpoints.settings,
         data: {
           'pgName': _pgNameController.text.trim(),
-          'address': _addressController.text.trim(),
+          'address': {'street': _addressController.text.trim()},
           'contactNumber': _contactController.text.trim(),
           'electricityRatePerUnit': double.tryParse(_electricityRateController.text.trim()) ?? 10,
-          'defaultDueDate': int.tryParse(_dueDateController.text.trim()) ?? 5,
+          'defaultDueDateDay': int.tryParse(_dueDateController.text.trim()) ?? 5,
           'upiId': _upiIdController.text.trim(),
         },
       );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/network/api_endpoints.dart';
@@ -193,24 +194,28 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                 value: CurrencyFormatter.format(totalCollected),
                 icon: Icons.account_balance_wallet_outlined,
                 accentColor: AppColors.success,
+                onTap: () => context.push('/owner/billing'),
               ),
               DashboardMetricCard(
                 title: 'Pending Dues',
                 value: CurrencyFormatter.format(pendingAmount),
                 icon: Icons.pending_actions_outlined,
                 accentColor: AppColors.warning,
+                onTap: () => context.push('/owner/billing'),
               ),
               DashboardMetricCard(
                 title: 'Total Expenses',
                 value: CurrencyFormatter.format(totalExpenses),
                 icon: Icons.receipt_long_outlined,
                 accentColor: AppColors.info,
+                onTap: () => context.push('/owner/expenses'),
               ),
               DashboardMetricCard(
                 title: 'Net Profit',
                 value: CurrencyFormatter.format(netProfit),
                 icon: Icons.trending_up_rounded,
                 accentColor: netProfit >= 0 ? AppColors.success : AppColors.error,
+                onTap: () => context.push('/owner/expenses'),
               ),
             ],
           ),
@@ -228,6 +233,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                   value: '$unitsConsumed Units',
                   icon: Icons.bolt_rounded,
                   accentColor: Colors.amber.shade700,
+                  onTap: () => context.push('/owner/meter'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -237,6 +243,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                   value: '$openComplaints Open',
                   icon: Icons.report_problem_outlined,
                   accentColor: openComplaints > 0 ? AppColors.error : AppColors.success,
+                  onTap: () => context.push('/owner/complaints'),
                 ),
               ),
             ],

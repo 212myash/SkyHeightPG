@@ -4,8 +4,12 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/validators.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_loader.dart';
+import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/status_badge.dart';
@@ -80,6 +84,399 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
     }).toList();
   }
 
+  void _showAddEditRoomDialog({Map<String, dynamic>? roomToEdit}) {
+    final isEditing = roomToEdit != null;
+    final formKey = GlobalKey<FormState>();
+    final roomNumberController = TextEditingController(text: roomToEdit?['roomNumber']?.toString() ?? '');
+    final floorController = TextEditingController(text: roomToEdit?['floor']?.toString() ?? '1');
+    final rentController = TextEditingController(text: roomToEdit?['monthlyRent']?.toString() ?? '');
+    final capacityController = TextEditingController(text: roomToEdit?['capacity']?.toString() ?? '2');
+
+    String selectedType = roomToEdit?['roomType']?.toString().toLowerCase() ?? 'double';
+    String selectedStatus = roomToEdit?['status']?.toString().toLowerCase() ?? 'available';
+
+    final initialAmenities = (roomToEdit?['amenities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+        ['WiFi', 'Geyser', 'Study Table'];
+    final selectedAmenities = List<String>.from(initialAmenities);
+
+    const allAmenities = [
+      'AC',
+      'WiFi',
+      'Geyser',
+      'Study Table',
+      'Balcony',
+      'Attached Washroom',
+      'Cupboard',
+      'TV',
+      'Power Backup'
+    ];
+
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (modalContext, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 24,
+              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isEditing ? 'Edit Room ${roomToEdit['roomNumber']}' : 'Add New Room',
+                          style: AppTextStyles.h2,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => Navigator.of(modalContext).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: AppTextField(
+                            controller: roomNumberController,
+                            label: 'Room Number',
+                            hint: 'e.g. R103',
+                            prefixIcon: Icons.door_front_door_outlined,
+                            validator: (v) => Validators.required(v, 'Room number required'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 1,
+                          child: AppTextField(
+                            controller: floorController,
+                            label: 'Floor',
+                            hint: '1',
+                            keyboardType: TextInputType.number,
+                            prefixIcon: Icons.layers_outlined,
+                            validator: (v) => Validators.positiveNumber(v, 'Floor required'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedType,
+                      decoration: InputDecoration(
+                        labelText: 'Room Type',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'single', child: Text('Single Sharing')),
+                        DropdownMenuItem(value: 'double', child: Text('Double Sharing')),
+                        DropdownMenuItem(value: 'triple', child: Text('Triple Sharing')),
+                        DropdownMenuItem(value: 'other', child: Text('Other / Dormitory')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setModalState(() => selectedType = val);
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: rentController,
+                            label: 'Monthly Rent (₹)',
+                            hint: '8500',
+                            keyboardType: TextInputType.number,
+                            prefixIcon: Icons.currency_rupee,
+                            validator: (v) => Validators.positiveNumber(v, 'Valid rent required'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AppTextField(
+                            controller: capacityController,
+                            label: 'Bed Capacity',
+                            hint: '2',
+                            keyboardType: TextInputType.number,
+                            prefixIcon: Icons.bed_outlined,
+                            validator: (v) => Validators.positiveNumber(v, 'Valid capacity required'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (isEditing) ...[
+                      const SizedBox(height: 14),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedStatus,
+                        decoration: InputDecoration(
+                          labelText: 'Room Status',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'available', child: Text('Available')),
+                          DropdownMenuItem(value: 'occupied', child: Text('Occupied')),
+                          DropdownMenuItem(value: 'maintenance', child: Text('Maintenance')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) setModalState(() => selectedStatus = val);
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text('Amenities', style: AppTextStyles.labelMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: allAmenities.map((amenity) {
+                        final isSelected = selectedAmenities.contains(amenity);
+                        return FilterChip(
+                          label: Text(amenity, style: TextStyle(fontSize: 12, color: isSelected ? AppColors.primary : AppColors.textPrimary)),
+                          selected: isSelected,
+                          selectedColor: AppColors.primarySurface,
+                          checkmarkColor: AppColors.primary,
+                          onSelected: (selected) {
+                            setModalState(() {
+                              if (selected) {
+                                selectedAmenities.add(amenity);
+                              } else {
+                                selectedAmenities.remove(amenity);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    AppButton(
+                      label: isEditing ? 'Update Room' : 'Create Room',
+                      isLoading: isSubmitting,
+                      onPressed: () async {
+                        if (!formKey.currentState!.validate()) return;
+                        setModalState(() => isSubmitting = true);
+
+                        final payload = <String, dynamic>{
+                          'roomNumber': roomNumberController.text.trim().toUpperCase(),
+                          'floor': int.tryParse(floorController.text.trim()) ?? 1,
+                          'roomType': selectedType,
+                          'monthlyRent': double.tryParse(rentController.text.trim()) ?? 0,
+                          'capacity': int.tryParse(capacityController.text.trim()) ?? 1,
+                          'amenities': selectedAmenities,
+                        };
+                        if (isEditing) {
+                          payload['status'] = selectedStatus;
+                        }
+
+                        try {
+                          final api = ref.read(apiClientProvider);
+                          final res = isEditing
+                              ? await api.put(ApiEndpoints.roomById(roomToEdit['_id'].toString()), data: payload)
+                              : await api.post(ApiEndpoints.rooms, data: payload);
+
+                          if (modalContext.mounted) {
+                            Navigator.of(modalContext).pop();
+                          }
+                          if (mounted) {
+                            if (res.data?['success'] == true) {
+                              AppDialog.showSnackBar(
+                                context,
+                                isEditing ? 'Room updated successfully!' : 'Room created successfully!',
+                              );
+                              _fetchRooms();
+                            } else {
+                              AppDialog.showSnackBar(
+                                context,
+                                res.data?['message'] ?? 'Failed to save room',
+                                isError: true,
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (modalContext.mounted) {
+                            setModalState(() => isSubmitting = false);
+                            AppDialog.showSnackBar(modalContext, e.toString(), isError: true);
+                          }
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showRoomDetailsBottomSheet(Map<String, dynamic> room) {
+    final roomId = room['_id']?.toString() ?? '';
+    final roomNumber = room['roomNumber'] ?? 'Unknown';
+    final floor = room['floor'] ?? '-';
+    final type = (room['roomType'] ?? 'Single').toString().toUpperCase();
+    final rent = room['monthlyRent'] ?? 0;
+    final capacity = (room['capacity'] ?? 0) as num;
+    final occupied = (room['occupiedBeds'] ?? 0) as num;
+    final available = capacity - occupied;
+    final status = (room['status'] ?? 'AVAILABLE').toString();
+    final amenities = (room['amenities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(10)),
+                      child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Room $roomNumber', style: AppTextStyles.h2),
+                        Text('Floor $floor • $type', style: AppTextStyles.bodySmall),
+                      ],
+                    ),
+                  ],
+                ),
+                StatusBadge(status: status),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem('Monthly Rent', CurrencyFormatter.format(rent), AppColors.primary),
+                  _buildStatItem('Occupied', '$occupied Beds', occupied > 0 ? AppColors.warning : AppColors.textPrimary),
+                  _buildStatItem('Available', '$available Beds', available > 0 ? AppColors.success : AppColors.textLight),
+                ],
+              ),
+            ),
+            if (amenities.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text('Room Amenities', style: AppTextStyles.labelMedium),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: amenities.map((a) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Text(a, style: AppTextStyles.bodySmall.copyWith(fontSize: 12)),
+                  );
+                }).toList(),
+              ),
+            ],
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Edit Room'),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _showAddEditRoomDialog(roomToEdit: room);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: const BorderSide(color: AppColors.error),
+                      foregroundColor: AppColors.error,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                    label: const Text('Deactivate'),
+                    onPressed: () async {
+                      Navigator.of(ctx).pop();
+                      final confirm = await AppDialog.showConfirmation(
+                        context: context,
+                        title: 'Deactivate Room $roomNumber',
+                        content: 'Are you sure you want to deactivate Room $roomNumber? Rooms with active tenants or pending records cannot be deleted.',
+                        confirmText: 'Deactivate',
+                        isDestructive: true,
+                      );
+                      if (confirm == true && mounted) {
+                        try {
+                          final api = ref.read(apiClientProvider);
+                          final res = await api.delete(ApiEndpoints.roomById(roomId));
+                          if (mounted) {
+                            if (res.data?['success'] == true) {
+                              AppDialog.showSnackBar(context, 'Room $roomNumber deactivated.');
+                              _fetchRooms();
+                            } else {
+                              AppDialog.showSnackBar(context, res.data?['message'] ?? 'Action blocked', isError: true);
+                            }
+                          }
+                        } catch (e) {
+                          if (mounted) AppDialog.showSnackBar(context, e.toString(), isError: true);
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: AppTextStyles.bodySmall),
+        const SizedBox(height: 4),
+        Text(value, style: AppTextStyles.h3.copyWith(color: color)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,6 +489,13 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
             onPressed: _fetchRooms,
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddEditRoomDialog(),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add Room'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
@@ -138,8 +542,44 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
           ),
           const Divider(height: 1, color: AppColors.border),
 
-          // Room List
-          Expanded(child: _buildList()),
+          // Content
+          Expanded(
+            child: _isLoading
+                ? const AppLoader(message: 'Loading rooms...')
+                : _error != null
+                    ? ErrorStateView(
+                        message: _error!,
+                        onRetry: _fetchRooms,
+                      )
+                    : _filteredRooms.isEmpty
+                        ? EmptyStateView(
+                            title: 'No Rooms Found',
+                            description: _searchQuery.isNotEmpty
+                                ? 'No rooms match your search query.'
+                                : 'No rooms registered yet. Tap "Add Room" to create one.',
+                            icon: Icons.meeting_room_outlined,
+                            actionText: _searchQuery.isNotEmpty ? 'Clear Search' : 'Add Room',
+                            onAction: () {
+                              if (_searchQuery.isNotEmpty) {
+                                setState(() => _searchQuery = '');
+                              } else {
+                                _showAddEditRoomDialog();
+                              }
+                            },
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _fetchRooms,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+                              itemCount: _filteredRooms.length,
+                              separatorBuilder: (context, index) => const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final room = _filteredRooms[index] as Map<String, dynamic>;
+                                return _buildRoomCard(room);
+                              },
+                            ),
+                          ),
+          ),
         ],
       ),
     );
@@ -159,132 +599,123 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
       side: BorderSide(
         color: isSelected ? AppColors.primary : AppColors.border,
       ),
-      onSelected: (_) => setState(() => _filterStatus = value),
+      onSelected: (selected) {
+        if (selected) setState(() => _filterStatus = value);
+      },
     );
   }
 
-  Widget _buildList() {
-    if (_isLoading) {
-      return const Center(child: AppLoader(text: 'Loading rooms...'));
-    }
+  Widget _buildRoomCard(Map<String, dynamic> room) {
+    final roomNumber = room['roomNumber'] ?? 'Unknown';
+    final floor = room['floor'] ?? '-';
+    final type = (room['roomType'] ?? 'Single').toString().toUpperCase();
+    final rent = room['monthlyRent'] ?? 0;
+    final capacity = (room['capacity'] ?? 0) as num;
+    final occupied = (room['occupiedBeds'] ?? 0) as num;
+    final available = capacity - occupied;
+    final status = (room['status'] ?? 'AVAILABLE').toString();
+    final amenities = (room['amenities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
 
-    if (_error != null) {
-      return ErrorStateView(message: _error!, onRetry: _fetchRooms);
-    }
-
-    final list = _filteredRooms;
-    if (list.isEmpty) {
-      return EmptyStateView(
-        icon: Icons.meeting_room_outlined,
-        title: 'No Rooms Found',
-        description: _searchQuery.isNotEmpty
-            ? 'No rooms matched your search criteria.'
-            : 'No rooms added yet.',
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _fetchRooms,
-      color: AppColors.primary,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: list.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final room = list[index] as Map<String, dynamic>;
-          final roomNumber = room['roomNumber'] ?? 'Unknown';
-          final floor = room['floor'] ?? '-';
-          final type = room['roomType'] ?? 'Standard';
-          final rent = room['monthlyRent'] ?? 0;
-          final capacity = (room['capacity'] ?? 0) as num;
-          final occupied = (room['occupiedBeds'] ?? 0) as num;
-          final status = (room['status'] ?? 'AVAILABLE').toString();
-          final amenities = (room['amenities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
-
-          return AppCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 20),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Room $roomNumber', style: AppTextStyles.h3),
-                            Text('Floor $floor • $type', style: AppTextStyles.bodySmall),
-                          ],
-                        ),
-                      ],
-                    ),
-                    StatusBadge(status: status),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                const Divider(height: 1, color: AppColors.divider),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Monthly Rent', style: AppTextStyles.bodySmall),
-                        Text(
-                          CurrencyFormatter.format(rent),
-                          style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Bed Occupancy', style: AppTextStyles.bodySmall),
-                        Text(
-                          '$occupied / $capacity Beds',
-                          style: AppTextStyles.labelLarge,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                if (amenities.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: amenities.map((a) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _showRoomDetailsBottomSheet(room),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.border),
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          a,
-                          style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                        child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Room $roomNumber', style: AppTextStyles.h3),
+                          Text('Floor $floor • $type', style: AppTextStyles.bodySmall),
+                        ],
+                      ),
+                    ],
+                  ),
+                  StatusBadge(status: status),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Divider(height: 1, color: AppColors.divider),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Monthly Rent', style: AppTextStyles.bodySmall),
+                      Text(
+                        CurrencyFormatter.format(rent),
+                        style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Occupied', style: AppTextStyles.bodySmall),
+                      Text(
+                        '$occupied / $capacity Beds',
+                        style: AppTextStyles.labelLarge,
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Available', style: AppTextStyles.bodySmall),
+                      Text(
+                        '$available Beds',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: available > 0 ? AppColors.success : AppColors.textLight,
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+              if (amenities.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: amenities.map((a) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Text(
+                        a,
+                        style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ],
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }

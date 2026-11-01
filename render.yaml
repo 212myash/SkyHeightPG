@@ -1,0 +1,29 @@
+# ===================================================
+# Render Infrastructure Blueprint — Sky Height PG
+# ===================================================
+# Documentation: https://render.com/docs/blueprint-spec
+#
+# IMPORTANT: Sensitive values use `sync: false` so they
+# are prompted securely in the Render Dashboard and NEVER
+# committed to version control.
+# ===================================================
+
+services:
+  - type: web
+    name: skyheightpg-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

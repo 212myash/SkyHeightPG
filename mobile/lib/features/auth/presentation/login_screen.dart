@@ -1,6 +1,9 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/config/app_config.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/validators.dart';
@@ -46,18 +49,148 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final errorMsg = ref.read(authProvider).errorMessage ?? 'Login failed. Please check your credentials.';
         AppDialog.showSnackBar(context, errorMsg, isError: true);
       }
-      // If success, GoRouter redirect handles navigation automatically!
     }
+  }
+
+  void _showServerConfigDialog() {
+    final controller = TextEditingController(text: AppConfig.baseUrl);
+    bool testing = false;
+    String? testResult;
+    bool testSuccess = false;
+
+    showDialog(
+      context: context,
+      builder: (dlgContext) => StatefulBuilder(
+        builder: (context, setDlgState) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.dns_outlined, color: AppColors.primary),
+                const SizedBox(width: 8),
+                const Text('Backend Server URL', style: TextStyle(fontSize: 18)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Set the backend API host for physical device testing:',
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    labelText: 'Base URL',
+                    hintText: 'http://127.0.0.1:5000',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    ActionChip(
+                      label: const Text('127.0.0.1 (USB)'),
+                      onPressed: () => setDlgState(() => controller.text = 'http://127.0.0.1:5000'),
+                    ),
+                    ActionChip(
+                      label: const Text('LAN Wi-Fi'),
+                      onPressed: () => setDlgState(() => controller.text = 'http://${AppConfig.defaultLanHost}:5000'),
+                    ),
+                  ],
+                ),
+                if (testResult != null) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        testSuccess ? Icons.check_circle : Icons.error,
+                        color: testSuccess ? AppColors.success : AppColors.error,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          testResult!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: testSuccess ? AppColors.success : AppColors.error,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: testing
+                    ? null
+                    : () async {
+                        setDlgState(() {
+                          testing = true;
+                          testResult = 'Testing connection...';
+                          testSuccess = false;
+                        });
+                        try {
+                          final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 4)));
+                          final res = await dio.get('${controller.text.trim()}/');
+                          setDlgState(() {
+                            testing = false;
+                            testSuccess = res.statusCode == 200;
+                            testResult = 'Connected! Server is reachable.';
+                          });
+                        } catch (e) {
+                          setDlgState(() {
+                            testing = false;
+                            testSuccess = false;
+                            testResult = 'Connection failed: ${e.toString()}';
+                          });
+                        }
+                      },
+                child: testing
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Test Connection'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await AppConfig.setCustomBaseUrl(controller.text.trim());
+                  if (dlgContext.mounted) Navigator.pop(dlgContext);
+                  if (mounted) {
+                    AppDialog.showSnackBar(this.context, 'Base URL updated to: ${AppConfig.baseUrl}');
+                  }
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_ethernet_rounded, color: AppColors.textSecondary),
+            tooltip: 'Server Connection',
+            onPressed: _showServerConfigDialog,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
@@ -129,7 +262,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             textInputAction: TextInputAction.done,
                             onSubmitted: (_) => _handleLogin(),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
+                          if (kDebugMode) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  icon: const Icon(Icons.admin_panel_settings_outlined, size: 14),
+                                  label: const Text('Fill Owner', style: TextStyle(fontSize: 12)),
+                                  onPressed: () {
+                                    _emailController.text = 'owner_1793511029432@skyheight-test.com';
+                                    _passwordController.text = 'Password123';
+                                  },
+                                ),
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  icon: const Icon(Icons.person_outline, size: 14),
+                                  label: const Text('Fill Tenant', style: TextStyle(fontSize: 12)),
+                                  onPressed: () {
+                                    _emailController.text = 'tenanta_1793511055378@skyheight-test.com';
+                                    _passwordController.text = 'Password123';
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                          ],
                           AppButton(
                             label: 'Sign In',
                             isLoading: _isLoading,

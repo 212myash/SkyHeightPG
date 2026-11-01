@@ -188,6 +188,12 @@ const submitUpiPayment = async (req, res) => {
     });
   } catch (error) {
     console.error("Submit UPI Payment Error:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "This UPI transaction reference has already been submitted."
+      });
+    }
     return res.status(500).json({
       success: false,
       message: "Server error submitting UPI payment.",

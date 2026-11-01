@@ -9,6 +9,7 @@ enum AuthStatus {
   initial,
   loading,
   authenticated,
+  offlineCached,
   unauthenticated,
   error,
 }
@@ -18,15 +19,19 @@ class AuthState {
   final UserModel? user;
   final String? token;
   final String? errorMessage;
+  final bool isServerVerified;
 
   const AuthState({
     this.status = AuthStatus.initial,
     this.user,
     this.token,
     this.errorMessage,
+    this.isServerVerified = false,
   });
 
   bool get isAuthenticated => status == AuthStatus.authenticated && user != null;
+  bool get isOfflineCached => status == AuthStatus.offlineCached;
+  bool get hasActiveSession => (status == AuthStatus.authenticated || status == AuthStatus.offlineCached) && user != null;
   bool get isLoading => status == AuthStatus.loading;
   bool get isOwner => user?.isOwner ?? false;
   bool get isTenant => user?.isTenant ?? false;
@@ -36,6 +41,7 @@ class AuthState {
     UserModel? user,
     String? token,
     String? errorMessage,
+    bool? isServerVerified,
     bool clearError = false,
     bool clearUser = false,
   }) {
@@ -44,6 +50,7 @@ class AuthState {
       user: clearUser ? null : (user ?? this.user),
       token: clearUser ? null : (token ?? this.token),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      isServerVerified: isServerVerified ?? this.isServerVerified,
     );
   }
 }
@@ -77,7 +84,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final token = await _storage.getToken();
       if (token == null || token.isEmpty) {
-        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
+        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true, isServerVerified: false);
         return;
       }
 
@@ -85,19 +92,60 @@ class AuthNotifier extends Notifier<AuthState> {
       final response = await _api.get(ApiEndpoints.profile);
       if (response.data != null && response.data['success'] == true && response.data['user'] != null) {
         final user = UserModel.fromJson(response.data['user'] as Map<String, dynamic>);
+        await _storage.saveUserData(user.toJson());
+        await _storage.saveRole(user.role);
+        await _storage.saveUserId(user.id);
         state = state.copyWith(
           status: AuthStatus.authenticated,
           user: user,
           token: token,
+          isServerVerified: true,
         );
       } else {
         await _storage.clearAll();
-        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
+        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true, isServerVerified: false);
+      }
+    } on UnauthorizedException {
+      // HTTP 401: Token invalid or expired — purge invalid session and force login
+      await _storage.clearAll();
+      state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true, isServerVerified: false);
+    } on NetworkException catch (e) {
+      // Network unreachable: Preserve credentials, mark as offlineCached (not server-verified)
+      await _restoreOfflineSession(e.message);
+    } on TimeoutException catch (e) {
+      // Connection timeout: Preserve credentials, mark as offlineCached (not server-verified)
+      await _restoreOfflineSession(e.message);
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        await _storage.clearAll();
+        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true, isServerVerified: false);
+      } else {
+        await _restoreOfflineSession(e.message);
       }
     } catch (e) {
-      // If unauthorized or network error with invalid token, reset
-      await _storage.clearAll();
-      state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
+      await _restoreOfflineSession('Offline session restored from secure cache.');
+    }
+  }
+
+  Future<void> _restoreOfflineSession(String reasonMessage) async {
+    final token = await _storage.getToken();
+    final cachedUserData = await _storage.getUserData();
+    if (token != null && token.isNotEmpty && cachedUserData != null) {
+      final user = UserModel.fromJson(cachedUserData);
+      state = state.copyWith(
+        status: AuthStatus.offlineCached,
+        user: user,
+        token: token,
+        isServerVerified: false,
+        errorMessage: reasonMessage,
+      );
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        clearUser: true,
+        isServerVerified: false,
+        errorMessage: reasonMessage,
+      );
     }
   }
 
@@ -120,23 +168,25 @@ class AuthNotifier extends Notifier<AuthState> {
         await _storage.saveToken(token);
         await _storage.saveRole(user.role);
         await _storage.saveUserId(user.id);
+        await _storage.saveUserData(user.toJson());
 
         state = state.copyWith(
           status: AuthStatus.authenticated,
           user: user,
           token: token,
+          isServerVerified: true,
         );
         return true;
       } else {
         final message = data?['message'] ?? 'Login failed. Please try again.';
-        state = state.copyWith(status: AuthStatus.error, errorMessage: message.toString());
+        state = state.copyWith(status: AuthStatus.error, errorMessage: message.toString(), isServerVerified: false);
         return false;
       }
     } on ApiException catch (e) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: e.message);
+      state = state.copyWith(status: AuthStatus.error, errorMessage: e.message, isServerVerified: false);
       return false;
     } catch (e) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: e.toString());
+      state = state.copyWith(status: AuthStatus.error, errorMessage: e.toString(), isServerVerified: false);
       return false;
     }
   }
@@ -169,23 +219,25 @@ class AuthNotifier extends Notifier<AuthState> {
         await _storage.saveToken(token);
         await _storage.saveRole(user.role);
         await _storage.saveUserId(user.id);
+        await _storage.saveUserData(user.toJson());
 
         state = state.copyWith(
           status: AuthStatus.authenticated,
           user: user,
           token: token,
+          isServerVerified: true,
         );
         return true;
       } else {
         final message = data?['message'] ?? 'Registration failed. Please try again.';
-        state = state.copyWith(status: AuthStatus.error, errorMessage: message.toString());
+        state = state.copyWith(status: AuthStatus.error, errorMessage: message.toString(), isServerVerified: false);
         return false;
       }
     } on ApiException catch (e) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: e.message);
+      state = state.copyWith(status: AuthStatus.error, errorMessage: e.message, isServerVerified: false);
       return false;
     } catch (e) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: e.toString());
+      state = state.copyWith(status: AuthStatus.error, errorMessage: e.toString(), isServerVerified: false);
       return false;
     }
   }
@@ -214,7 +266,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     await _storage.clearAll();
-    state = const AuthState(status: AuthStatus.unauthenticated);
+    state = const AuthState(status: AuthStatus.unauthenticated, isServerVerified: false);
   }
 }
 

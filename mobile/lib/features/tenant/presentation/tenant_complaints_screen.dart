@@ -69,7 +69,8 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final descController = TextEditingController();
-    String selectedPriority = 'MEDIUM';
+    String selectedPriority = 'medium';
+    String selectedCategory = 'other';
     bool isSubmitting = false;
 
     showModalBottomSheet(
@@ -113,23 +114,43 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                     const SizedBox(height: 18),
                     AppTextField(
                       controller: titleController,
-                      label: 'Complaint Title',
+                      label: 'Complaint Title *',
                       hint: 'e.g. Geyser not heating water',
                       prefixIcon: Icons.title_rounded,
                       validator: (v) => Validators.required(v, 'Please enter a title'),
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
-                      initialValue: selectedPriority,
+                      initialValue: selectedCategory,
                       decoration: InputDecoration(
-                        labelText: 'Priority Level',
+                        labelText: 'Category *',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'LOW', child: Text('Low - General Maintenance')),
-                        DropdownMenuItem(value: 'MEDIUM', child: Text('Medium - Standard Request')),
-                        DropdownMenuItem(value: 'HIGH', child: Text('High - Urgent Attention')),
-                        DropdownMenuItem(value: 'URGENT', child: Text('Critical - Emergency')),
+                        DropdownMenuItem(value: 'electricity', child: Text('Electricity / Appliances')),
+                        DropdownMenuItem(value: 'plumbing', child: Text('Plumbing / Water')),
+                        DropdownMenuItem(value: 'wifi', child: Text('WiFi & Internet')),
+                        DropdownMenuItem(value: 'cleaning', child: Text('Room / PG Cleaning')),
+                        DropdownMenuItem(value: 'furniture', child: Text('Furniture / Bedding')),
+                        DropdownMenuItem(value: 'noise', child: Text('Noise / Disturbance')),
+                        DropdownMenuItem(value: 'other', child: Text('Other Issue')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setModalState(() => selectedCategory = val);
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedPriority,
+                      decoration: InputDecoration(
+                        labelText: 'Priority Level *',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'low', child: Text('Low - General Maintenance')),
+                        DropdownMenuItem(value: 'medium', child: Text('Medium - Standard Request')),
+                        DropdownMenuItem(value: 'high', child: Text('High - Urgent Attention')),
+                        DropdownMenuItem(value: 'urgent', child: Text('Critical - Emergency')),
                       ],
                       onChanged: (val) {
                         if (val != null) setModalState(() => selectedPriority = val);
@@ -138,7 +159,7 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                     const SizedBox(height: 14),
                     AppTextField(
                       controller: descController,
-                      label: 'Detailed Description',
+                      label: 'Detailed Description *',
                       hint: 'Describe the issue clearly...',
                       maxLines: 4,
                       validator: (v) => Validators.required(v, 'Please describe the issue'),
@@ -158,6 +179,7 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                             data: {
                               'title': titleController.text.trim(),
                               'description': descController.text.trim(),
+                              'category': selectedCategory,
                               'priority': selectedPriority,
                             },
                           );
@@ -250,8 +272,9 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
           final c = _complaints[index] as Map<String, dynamic>;
           final title = c['title'] ?? 'Complaint';
           final desc = c['description'] ?? '';
-          final status = (c['status'] ?? 'OPEN').toString();
-          final priority = (c['priority'] ?? 'MEDIUM').toString();
+          final status = (c['status'] ?? 'open').toString();
+          final priority = (c['priority'] ?? 'medium').toString().toUpperCase();
+          final category = (c['category'] ?? 'other').toString().toUpperCase();
           final resolution = c['resolution'];
           final dateStr = c['createdAt'] != null ? DateFormatter.formatDate(c['createdAt'].toString()) : '-';
 
@@ -268,14 +291,43 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(title, style: AppTextStyles.h3),
-                          Text('Logged on $dateStr • Priority: $priority', style: AppTextStyles.bodySmall),
+                          Text('Logged on $dateStr', style: AppTextStyles.bodySmall),
                         ],
                       ),
                     ),
                     StatusBadge(status: status),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'PRIORITY: $priority',
+                        style: AppTextStyles.badge.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Text(
+                        category,
+                        style: AppTextStyles.badge.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
                 Text(desc, style: AppTextStyles.bodyMedium),
                 if (resolution != null && resolution.toString().isNotEmpty) ...[
                   const SizedBox(height: 12),

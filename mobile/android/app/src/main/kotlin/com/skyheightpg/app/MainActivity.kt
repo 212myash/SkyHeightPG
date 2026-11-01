@@ -1,4 +1,4 @@
-package com.skyheightpg.sky_height_pg
+package com.skyheightpg.app
 
 import io.flutter.embedding.android.FlutterActivity
 

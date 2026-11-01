@@ -96,24 +96,31 @@ class OwnerMoreScreen extends ConsumerWidget {
             child: Column(
               children: [
                 _buildTile(
+                  icon: Icons.receipt_outlined,
+                  title: 'Monthly Billing & Invoices',
+                  subtitle: 'Generate and manage rent bills',
+                  onTap: () => context.push('/owner/billing'),
+                ),
+                const Divider(height: 1, color: AppColors.divider),
+                _buildTile(
                   icon: Icons.bolt_rounded,
                   title: 'Electricity Meter Readings',
                   subtitle: 'Log monthly room sub-meter units',
-                  onTap: () => AppDialog.showSnackBar(context, 'Meter management active in Phase 5'),
+                  onTap: () => context.push('/owner/meter'),
                 ),
                 const Divider(height: 1, color: AppColors.divider),
                 _buildTile(
                   icon: Icons.receipt_long_outlined,
                   title: 'Expenses & Maintenance',
                   subtitle: 'Log repairs, cleaner bills & supplies',
-                  onTap: () => AppDialog.showSnackBar(context, 'Expenses active in Phase 5'),
+                  onTap: () => context.push('/owner/expenses'),
                 ),
                 const Divider(height: 1, color: AppColors.divider),
                 _buildTile(
                   icon: Icons.report_problem_outlined,
                   title: 'Complaints Desk',
                   subtitle: 'Review and resolve tenant issues',
-                  onTap: () => AppDialog.showSnackBar(context, 'Complaints active in Phase 5'),
+                  onTap: () => context.push('/owner/complaints'),
                 ),
               ],
             ),

@@ -74,4 +74,17 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
+// Concurrency Hardening: Partial unique index to prevent duplicate pending or verified UPI transaction references
+paymentSchema.index(
+  { transactionReference: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      paymentMethod: "upi",
+      verificationStatus: { $in: ["pending", "verified"] },
+      transactionReference: { $type: "string", $gt: "" }
+    }
+  }
+);
+
 module.exports = mongoose.model("Payment", paymentSchema);

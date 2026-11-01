@@ -28,24 +28,36 @@ class ApiClient {
   Dio get dio => _dio;
   SecureStorageService get storage => _storageService;
 
-  Future<dynamic> get(
+  Future<Response<dynamic>> get(
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response.data;
-    } on DioException catch (e) {
-      _handleDioException(e);
+    int attempts = 0;
+    const maxAttempts = 2;
+    while (true) {
+      try {
+        attempts++;
+        final response = await _dio.get(
+          path,
+          queryParameters: queryParameters,
+          options: options,
+        );
+        return response;
+      } on DioException catch (e) {
+        final isTransient = e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.connectionError;
+        if (isTransient && attempts < maxAttempts) {
+          await Future.delayed(Duration(milliseconds: 500 * attempts));
+          continue;
+        }
+        _handleDioException(e);
+      }
     }
   }
 
-  Future<dynamic> post(
+  Future<Response<dynamic>> post(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -58,13 +70,13 @@ class ApiClient {
         queryParameters: queryParameters,
         options: options,
       );
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioException(e);
     }
   }
 
-  Future<dynamic> put(
+  Future<Response<dynamic>> put(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -77,13 +89,13 @@ class ApiClient {
         queryParameters: queryParameters,
         options: options,
       );
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioException(e);
     }
   }
 
-  Future<dynamic> delete(
+  Future<Response<dynamic>> delete(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -96,7 +108,7 @@ class ApiClient {
         queryParameters: queryParameters,
         options: options,
       );
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioException(e);
     }

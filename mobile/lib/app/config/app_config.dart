@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Centralized Application and API Configuration
 class AppConfig {
@@ -13,27 +14,58 @@ class AppConfig {
   static const String androidEmulatorHost = '10.0.2.2';
   static const String iosSimulatorHost = '127.0.0.1';
   static const String localhostHost = 'localhost';
+  static const String defaultLanHost = '10.20.178.62';
+
+  // Compile-time environment override via --dart-define=API_URL=...
+  static const String _envApiUrl = String.fromEnvironment('API_URL');
 
   // Configurable base URL (can be updated at runtime for physical devices)
   static String? _customBaseUrl;
+  static const String _prefKeyBaseUrl = 'skyheight_custom_base_url';
 
-  static void setCustomBaseUrl(String url) {
-    _customBaseUrl = url.trim().replaceAll(RegExp(r'/+$'), '');
+  static Future<void> init() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUrl = prefs.getString(_prefKeyBaseUrl);
+      if (savedUrl != null && savedUrl.trim().isNotEmpty) {
+        _customBaseUrl = savedUrl.trim().replaceAll(RegExp(r'/+$'), '');
+      }
+    } catch (_) {}
   }
 
-  static void resetBaseUrl() {
+  static Future<void> setCustomBaseUrl(String url) async {
+    final cleanUrl = url.trim().replaceAll(RegExp(r'/+$'), '');
+    _customBaseUrl = cleanUrl;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefKeyBaseUrl, cleanUrl);
+    } catch (_) {}
+  }
+
+  static Future<void> resetBaseUrl() async {
     _customBaseUrl = null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_prefKeyBaseUrl);
+    } catch (_) {}
   }
 
   static String get baseUrl {
+    // 1. Runtime custom URL (user/QA configured)
     if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
       return _customBaseUrl!;
     }
 
-    // Auto-detect development host based on platform
+    // 2. Compile-time --dart-define=API_URL=...
+    if (_envApiUrl.isNotEmpty) {
+      return _envApiUrl.replaceAll(RegExp(r'/+$'), '');
+    }
+
+    // 3. Platform default hosts
     if (!kIsWeb) {
       if (Platform.isAndroid) {
-        return 'http://$androidEmulatorHost:$defaultPort';
+        // USB adb reverse maps localhost:5000 directly over USB
+        return 'http://127.0.0.1:$defaultPort';
       } else if (Platform.isIOS) {
         return 'http://$iosSimulatorHost:$defaultPort';
       }

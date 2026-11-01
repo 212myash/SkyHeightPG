@@ -11,13 +11,14 @@ const {
 } = require("../controllers/paymentController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
+const { paymentLimiter } = require("../middleware/rateLimiter");
 
 // All payment routes require authentication
 router.use(protect);
 
 // Tenant routes
 router.get("/my-payments", authorize("tenant"), getMyPayments);
-router.post("/upi/submit", authorize("tenant"), submitUpiPayment);
+router.post("/upi/submit", authorize("tenant"), paymentLimiter, submitUpiPayment);
 
 // Owner routes
 router.post("/cash", authorize("owner"), recordCashPayment);

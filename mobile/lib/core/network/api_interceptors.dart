@@ -14,6 +14,7 @@ class AuthInterceptor extends Interceptor {
   ) async {
     options.headers['Content-Type'] = 'application/json';
     options.headers['Accept'] = 'application/json';
+    options.headers['bypass-tunnel-reminder'] = 'true';
 
     final token = await _storageService.getToken();
     if (token != null && token.isNotEmpty) {
