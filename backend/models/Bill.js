@@ -44,6 +44,7 @@ const billSchema = new mongoose.Schema(
       set: (v) => Math.round(v * 100) / 100
     },
 
+    // Adjustments: Concession/discount subtracted from bill (Formula: Rent + Electricity + OtherCharges - Adjustments)
     adjustments: {
       type: Number,
       default: 0,

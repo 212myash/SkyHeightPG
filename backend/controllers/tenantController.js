@@ -317,7 +317,25 @@ const updateTenant = async (req, res) => {
       if (assignedBed) tenant.assignedBed = assignedBed.trim();
       if (address) tenant.address = address;
       if (emergencyContact) tenant.emergencyContact = emergencyContact;
-      if (status) tenant.status = status;
+
+      // Handle room bed occupancy sync if status changes
+      if (status && status !== tenant.status) {
+        const room = await Room.findById(tenant.room);
+        if (status === "vacated" && tenant.status !== "vacated" && room && room.occupiedBeds > 0) {
+          room.occupiedBeds = Math.max(0, room.occupiedBeds - 1);
+          await room.save();
+        } else if (tenant.status === "vacated" && status !== "vacated" && room) {
+          if (room.occupiedBeds >= room.capacity) {
+            return res.status(400).json({
+              success: false,
+              message: `Cannot reactivate tenant: Room ${room.roomNumber} is already at full capacity (${room.capacity}).`
+            });
+          }
+          room.occupiedBeds += 1;
+          await room.save();
+        }
+        tenant.status = status;
+      }
     }
 
     await tenant.save();
@@ -345,7 +363,7 @@ const updateTenant = async (req, res) => {
 const changeRoomAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { newRoomId, assignedBed } = req.body;
+    const { newRoomId, assignedBed, monthlyRent } = req.body;
 
     if (!isValidObjectId(id) || !isValidObjectId(newRoomId)) {
       return res.status(400).json({
@@ -405,6 +423,9 @@ const changeRoomAssignment = async (req, res) => {
     // Update tenant
     tenant.room = newRoom._id;
     if (assignedBed) tenant.assignedBed = assignedBed.trim();
+    if (monthlyRent !== undefined && Number(monthlyRent) >= 0) {
+      tenant.monthlyRent = Number(monthlyRent);
+    }
     await tenant.save();
 
     return res.status(200).json({

@@ -208,7 +208,7 @@ const getFinancialReport = async (req, res) => {
       }
     ]);
 
-    const totalCollected = collections.reduce((acc, c) => acc + c.totalAmount, 0);
+    const totalCollected = Math.round(collections.reduce((acc, c) => acc + c.totalAmount, 0) * 100) / 100;
 
     // 2. Expenses breakdown by category
     const expenses = await Expense.aggregate([
@@ -227,13 +227,13 @@ const getFinancialReport = async (req, res) => {
       { $sort: { totalAmount: -1 } }
     ]);
 
-    const totalExpenses = expenses.reduce((acc, e) => acc + e.totalAmount, 0);
+    const totalExpenses = Math.round(expenses.reduce((acc, e) => acc + e.totalAmount, 0) * 100) / 100;
     const netProfit = Math.round((totalCollected - totalExpenses) * 100) / 100;
 
     // 3. Billing Stats
     const bills = await Bill.find({ billingMonth: month });
-    const totalBilled = bills.reduce((acc, b) => acc + b.totalAmount, 0);
-    const totalPaidOnBills = bills.reduce((acc, b) => acc + b.paidAmount, 0);
+    const totalBilled = Math.round(bills.reduce((acc, b) => acc + b.totalAmount, 0) * 100) / 100;
+    const totalPaidOnBills = Math.round(bills.reduce((acc, b) => acc + b.paidAmount, 0) * 100) / 100;
     const collectionEfficiency = totalBilled > 0 ? Math.round((totalPaidOnBills / totalBilled) * 100) : 0;
 
     return res.status(200).json({

@@ -26,7 +26,16 @@ const computeDueDate = (billingMonth, dueDay = 5) => {
  */
 const generateBills = async (req, res) => {
   try {
-    const { tenantId, billingMonth, dueDate, otherCharges, adjustments, notes, bulk } = req.body;
+    const {
+      tenantId,
+      billingMonth,
+      dueDate,
+      electricityAmount: customElecAmount,
+      otherCharges,
+      adjustments,
+      notes,
+      bulk
+    } = req.body;
 
     if (!billingMonth) {
       return res.status(400).json({
@@ -80,7 +89,15 @@ const generateBills = async (req, res) => {
       let currReading = 0;
       let units = 0;
 
-      if (meterReading) {
+      if (customElecAmount !== undefined && !isNaN(Number(customElecAmount))) {
+        // Owner explicitly provided a custom/prorated electricity amount (e.g. mid-month join/transfer)
+        elecAmount = Math.max(0, Math.round(Number(customElecAmount) * 100) / 100);
+        if (meterReading) {
+          prevReading = meterReading.previousReading;
+          currReading = meterReading.currentReading;
+          units = meterReading.unitsConsumed;
+        }
+      } else if (meterReading) {
         // Divide electricity cost equally among active tenants in the room
         const activeRoommatesCount = await Tenant.countDocuments({ room: tenant.room._id, status: "active" });
         const divisor = Math.max(1, activeRoommatesCount);
@@ -381,7 +398,7 @@ const getBillById = async (req, res) => {
 const updateBillAdjustments = async (req, res) => {
   try {
     const { id } = req.params;
-    const { adjustments, otherCharges, notes } = req.body;
+    const { adjustments, otherCharges, electricityAmount, notes } = req.body;
 
     if (!isValidObjectId(id)) {
       return res.status(400).json({
@@ -400,6 +417,16 @@ const updateBillAdjustments = async (req, res) => {
 
     if (adjustments !== undefined) {
       bill.adjustments = Number(adjustments);
+    }
+    if (electricityAmount !== undefined) {
+      const elec = Number(electricityAmount);
+      if (elec < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Electricity amount cannot be negative."
+        });
+      }
+      bill.electricityAmount = Math.round(elec * 100) / 100;
     }
     if (otherCharges !== undefined) {
       if (Number(otherCharges) < 0) {

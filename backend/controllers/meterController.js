@@ -53,19 +53,31 @@ const addMeterReading = async (req, res) => {
       });
     }
 
-    // Fetch previous reading
-    const lastReadingDoc = await MeterReading.findOne({ room: roomId }).sort({ readingDate: -1, createdAt: -1 });
+    // Fetch chronologically previous reading for this room
+    const lastReadingDoc = await MeterReading.findOne({
+      room: roomId,
+      readingMonth: { $lt: readingMonth }
+    }).sort({ readingMonth: -1 });
 
     let calculatedPrevReading;
     if (lastReadingDoc) {
       calculatedPrevReading = lastReadingDoc.currentReading;
-    } else if (manualPrevReading !== undefined) {
+    } else if (manualPrevReading !== undefined && !isNaN(Number(manualPrevReading))) {
       calculatedPrevReading = Number(manualPrevReading);
     } else {
-      calculatedPrevReading = 0;
+      // Check if any prior reading exists at all
+      const anyPrior = await MeterReading.findOne({ room: roomId }).sort({ readingDate: -1 });
+      calculatedPrevReading = anyPrior ? anyPrior.currentReading : 0;
     }
 
     const currReadingNum = Number(currentReading);
+    if (isNaN(currReadingNum) || currReadingNum < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Current reading must be a valid non-negative number."
+      });
+    }
+
     if (currReadingNum < calculatedPrevReading) {
       return res.status(400).json({
         success: false,
@@ -73,11 +85,31 @@ const addMeterReading = async (req, res) => {
       });
     }
 
-    // Determine unit rate
-    let activeRate = ratePerUnit !== undefined ? Number(ratePerUnit) : null;
-    if (activeRate === null || isNaN(activeRate)) {
-      const settings = await PGSettings.getSettings();
-      activeRate = settings.electricityRatePerUnit;
+    // Check if a subsequent reading already exists and ensure consistency
+    const nextReadingDoc = await MeterReading.findOne({
+      room: roomId,
+      readingMonth: { $gt: readingMonth }
+    }).sort({ readingMonth: 1 });
+    if (nextReadingDoc && currReadingNum > nextReadingDoc.previousReading) {
+      return res.status(400).json({
+        success: false,
+        message: `Current reading (${currReadingNum}) exceeds the previous reading recorded for subsequent month ${nextReadingDoc.readingMonth} (${nextReadingDoc.previousReading}).`
+      });
+    }
+
+    // Determine unit rate from PGSettings (with validated owner override support)
+    const settings = await PGSettings.getSettings();
+    let activeRate = settings.electricityRatePerUnit;
+
+    if (ratePerUnit !== undefined && ratePerUnit !== null) {
+      const parsedRate = Number(ratePerUnit);
+      if (isNaN(parsedRate) || parsedRate < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Specified ratePerUnit must be a valid non-negative number."
+        });
+      }
+      activeRate = Math.round(parsedRate * 100) / 100;
     }
 
     const meterReading = await MeterReading.create({

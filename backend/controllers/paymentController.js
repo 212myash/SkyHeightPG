@@ -236,17 +236,32 @@ const verifyUpiPayment = async (req, res) => {
     }
 
     if (status === "verified") {
+      // Find and validate bill before verification
+      const bill = await Bill.findById(payment.bill._id);
+      if (!bill) {
+        return res.status(404).json({
+          success: false,
+          message: "Associated bill not found."
+        });
+      }
+
+      // Overpayment prevention check at time of verification
+      const remainingBalance = Math.max(0, Math.round((bill.totalAmount - bill.paidAmount) * 100) / 100);
+      if (payment.amount > remainingBalance) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot verify payment of ₹${payment.amount} because remaining bill balance is only ₹${remainingBalance}. Please reject or adjust the payment.`
+        });
+      }
+
       payment.verificationStatus = "verified";
       payment.verifiedBy = req.user._id;
       payment.verifiedAt = new Date();
       if (notes) payment.notes = notes.trim();
 
       // Credit the bill
-      const bill = await Bill.findById(payment.bill._id);
-      if (bill) {
-        bill.paidAmount = Math.round((bill.paidAmount + payment.amount) * 100) / 100;
-        await bill.save();
-      }
+      bill.paidAmount = Math.round((bill.paidAmount + payment.amount) * 100) / 100;
+      await bill.save();
 
       await payment.save();
 
@@ -255,8 +270,8 @@ const verifyUpiPayment = async (req, res) => {
         message: `Payment of ₹${payment.amount} for ${payment.tenant.fullName} verified successfully.`,
         data: {
           payment,
-          billPaidAmount: bill ? bill.paidAmount : null,
-          billStatus: bill ? bill.paymentStatus : null
+          billPaidAmount: bill.paidAmount,
+          billStatus: bill.paymentStatus
         }
       });
     } else {
