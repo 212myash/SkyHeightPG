@@ -44,12 +44,12 @@ class AuthInterceptor extends Interceptor {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         apiException = TimeoutException(
-          message: 'Connection timed out. Please check your network.',
+          message: 'Connection timed out. If the cloud server is waking up from sleep, please try again in a moment.',
         );
         break;
       case DioExceptionType.connectionError:
         apiException = NetworkException(
-          message: 'Could not connect to Sky Height PG server. Ensure the backend is running.',
+          message: 'Could not connect to Sky Height PG cloud server. Please verify your internet connection and try again.',
         );
         break;
       case DioExceptionType.badResponse:

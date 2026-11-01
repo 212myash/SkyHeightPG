@@ -83,19 +83,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: controller,
                   decoration: const InputDecoration(
                     labelText: 'Base URL',
-                    hintText: 'http://127.0.0.1:5000',
+                    hintText: AppConfig.productionApiUrl,
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
+                  runSpacing: 6,
                   children: [
                     ActionChip(
+                      avatar: const Icon(Icons.cloud_done_rounded, size: 16, color: AppColors.primary),
+                      label: const Text('Render (Live)'),
+                      onPressed: () => setDlgState(() => controller.text = AppConfig.productionApiUrl),
+                    ),
+                    ActionChip(
+                      avatar: const Icon(Icons.usb_rounded, size: 16),
                       label: const Text('127.0.0.1 (USB)'),
                       onPressed: () => setDlgState(() => controller.text = 'http://127.0.0.1:5000'),
                     ),
                     ActionChip(
+                      avatar: const Icon(Icons.wifi_rounded, size: 16),
                       label: const Text('LAN Wi-Fi'),
                       onPressed: () => setDlgState(() => controller.text = 'http://${AppConfig.defaultLanHost}:5000'),
                     ),
@@ -132,23 +140,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     : () async {
                         setDlgState(() {
                           testing = true;
-                          testResult = 'Testing connection...';
+                          testResult = 'Testing server reachability...';
                           testSuccess = false;
                         });
                         try {
-                          final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 4)));
-                          final res = await dio.get('${controller.text.trim()}/');
+                          final dio = Dio(BaseOptions(
+                            connectTimeout: const Duration(seconds: 25),
+                            receiveTimeout: const Duration(seconds: 25),
+                          ));
+                          final cleanUrl = controller.text.trim().replaceAll(RegExp(r'/+$'), '');
+                          final res = await dio.get('$cleanUrl/health');
                           setDlgState(() {
                             testing = false;
                             testSuccess = res.statusCode == 200;
-                            testResult = 'Connected! Server is reachable.';
+                            testResult = 'Connected! Server is live and healthy.';
                           });
                         } catch (e) {
-                          setDlgState(() {
-                            testing = false;
-                            testSuccess = false;
-                            testResult = 'Connection failed: ${e.toString()}';
-                          });
+                          try {
+                            final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5)));
+                            final cleanUrl = controller.text.trim().replaceAll(RegExp(r'/+$'), '');
+                            final res = await dio.get('$cleanUrl/');
+                            setDlgState(() {
+                              testing = false;
+                              testSuccess = res.statusCode == 200;
+                              testResult = 'Connected! Server is reachable.';
+                            });
+                          } catch (_) {
+                            setDlgState(() {
+                              testing = false;
+                              testSuccess = false;
+                              testResult = 'Connection failed: Cloud server may be waking up. Try again in 15 seconds.';
+                            });
+                          }
                         }
                       },
                 child: testing
@@ -157,7 +180,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await AppConfig.setCustomBaseUrl(controller.text.trim());
+                  final input = controller.text.trim();
+                  if (input == AppConfig.productionApiUrl || input.isEmpty) {
+                    await AppConfig.resetBaseUrl();
+                  } else {
+                    await AppConfig.setCustomBaseUrl(input);
+                  }
                   if (dlgContext.mounted) Navigator.pop(dlgContext);
                   if (mounted) {
                     AppDialog.showSnackBar(this.context, 'Base URL updated to: ${AppConfig.baseUrl}');

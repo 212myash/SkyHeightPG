@@ -1,9 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sky_height_pg/app/config/app_config.dart';
 import 'package:sky_height_pg/core/network/api_endpoints.dart';
 import 'package:sky_height_pg/core/network/api_exceptions.dart';
 
 void main() {
   group('API Client & Exceptions Tests', () {
+    test('AppConfig defaults to Render production backend and 60s timeouts', () {
+      expect(AppConfig.productionApiUrl, 'https://skyheightpg.onrender.com');
+      expect(AppConfig.baseUrl, 'https://skyheightpg.onrender.com');
+      expect(AppConfig.isProduction, isTrue);
+      expect(AppConfig.connectTimeout, const Duration(seconds: 60));
+      expect(AppConfig.receiveTimeout, const Duration(seconds: 60));
+    });
+
     test('ApiEndpoints maps correct prefixes and paths', () {
       expect(ApiEndpoints.prefix, '/api');
       expect(ApiEndpoints.login, '/api/auth/login');
