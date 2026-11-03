@@ -5,6 +5,7 @@ const Notification = require("../models/Notification");
 const Conversation = require("../models/Conversation");
 const OccupancyHistory = require("../models/OccupancyHistory");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * @desc    Get all pending or filtered registrations
@@ -232,6 +233,19 @@ const approveRegistration = async (req, res) => {
         targetRoom: assignedRoom ? assignedRoom._id : null,
         targetTenant: tenant._id
       });
+
+      // Dispatch push notification to tenant
+      pushService.sendPushToUser(user._id, {
+        title: "Registration Approved!",
+        body: assignedRoom
+          ? `Welcome to Sky Height Apartment! You are assigned to Room ${assignedRoom.roomNumber}.`
+          : "Welcome to Sky Height Apartment! Your registration has been approved.",
+        data: {
+          category: "registration_update",
+          screen: "/tenant/dashboard"
+        },
+        channelId: "alerts"
+      }).catch((err) => console.error("Approval push error:", err.message));
     } catch (notifErr) {
       console.error("Failed to send approval notification:", notifErr);
     }
@@ -317,6 +331,17 @@ const rejectRegistration = async (req, res) => {
         category: "registration_update",
         audience: "tenant"
       });
+
+      // Dispatch push notification to user
+      pushService.sendPushToUser(user._id, {
+        title: "Registration Rejected",
+        body: `Your registration for Sky Height Apartment was not approved: ${rejectionReason}`,
+        data: {
+          category: "registration_update",
+          screen: "/login"
+        },
+        channelId: "alerts"
+      }).catch((err) => console.error("Rejection push error:", err.message));
     } catch (notifErr) {
       console.error("Failed to send rejection notification:", notifErr);
     }

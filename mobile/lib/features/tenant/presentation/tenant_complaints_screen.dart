@@ -291,21 +291,26 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: AppTextStyles.h3),
+                          Text(title, style: AppTextStyles.h3, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 2),
                           Text('Logged on $dateStr', style: AppTextStyles.bodySmall),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     StatusBadge(status: status),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -318,7 +323,6 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                         style: AppTextStyles.badge.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(

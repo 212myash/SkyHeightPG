@@ -4,6 +4,7 @@ const Tenant = require("../models/Tenant");
 const Bill = require("../models/Bill");
 const PGSettings = require("../models/PGSettings");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * @desc    Record a monthly meter reading for a room
@@ -151,6 +152,33 @@ const addMeterReading = async (req, res) => {
     } catch (billSyncErr) {
       console.error("Retroactive Bill Sync Error in addMeterReading:", billSyncErr);
     }
+
+    // Notify room occupants of recorded meter reading
+    (async () => {
+      try {
+        const roomTenants = await Tenant.find({ room: roomId, status: "active" }).populate("user");
+        for (const t of roomTenants) {
+          if (t.user) {
+            await pushService.dispatchNotificationAndPush({
+              recipientId: t.user._id || t.user,
+              senderId: req.user._id,
+              title: `Meter Reading: Room ${room.roomNumber}`,
+              message: `Reading for ${readingMonth}: ${unitsConsumed} units consumed (₹${electricityAmount}).`,
+              category: "electricity_bill",
+              targetRoom: roomId,
+              data: {
+                screen: "/tenant/dashboard",
+                readingMonth,
+                unitsConsumed: unitsConsumed.toString()
+              },
+              channelId: "billing"
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Meter reading push error:", e.message);
+      }
+    })();
 
     return res.status(201).json({
       success: true,

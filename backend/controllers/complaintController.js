@@ -3,6 +3,7 @@ const Tenant = require("../models/Tenant");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * @desc    File a new complaint
@@ -54,6 +55,18 @@ const createComplaint = async (req, res) => {
           relatedComplaint: complaint._id
         });
       }
+
+      // Dispatch push notification to all owners
+      pushService.sendPushToRole("owner", {
+        title: `New Complaint: ${complaint.title}`,
+        body: `${tenant.fullName} has filed a ${complaint.priority} priority complaint (${complaint.category}).`,
+        data: {
+          category: "complaint_update",
+          screen: "/owner/complaints",
+          complaintId: complaint._id.toString()
+        },
+        channelId: "maintenance"
+      }).catch((err) => console.error("Complaint owner push error:", err.message));
     } catch (notifErr) {
       console.error("Failed to notify owners of new complaint:", notifErr);
     }
@@ -264,6 +277,18 @@ const updateComplaintStatus = async (req, res) => {
           targetTenant: complaint.tenant._id,
           relatedComplaint: complaint._id
         });
+
+        // Dispatch push notification to the tenant
+        pushService.sendPushToUser(complaint.tenant.user, {
+          title: `Complaint Updated: ${complaint.title}`,
+          body: `Status updated to '${status}'.${complaint.resolution ? ` Notes: ${complaint.resolution}` : ""}`,
+          data: {
+            category: "complaint_update",
+            screen: "/tenant/complaints",
+            complaintId: complaint._id.toString()
+          },
+          channelId: "maintenance"
+        }).catch((err) => console.error("Complaint tenant push error:", err.message));
       }
     } catch (notifErr) {
       console.error("Failed to notify tenant of complaint update:", notifErr);

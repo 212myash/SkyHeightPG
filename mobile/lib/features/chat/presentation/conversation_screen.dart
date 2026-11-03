@@ -263,12 +263,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          msg.senderName,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isOwner ? AppColors.primary : AppColors.textPrimary,
+                        Flexible(
+                          child: Text(
+                            msg.senderName,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isOwner ? AppColors.primary : AppColors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (isOwner) ...[

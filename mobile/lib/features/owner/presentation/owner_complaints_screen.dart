@@ -316,25 +316,31 @@ class _OwnerComplaintsScreenState extends ConsumerState<OwnerComplaintsScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppTextStyles.h3),
+                    Text(title, style: AppTextStyles.h3, maxLines: 2, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
                     Text(
                       '$tenantName • Room $roomNumber • $dateStr',
                       style: AppTextStyles.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               StatusBadge(status: status),
             ],
           ),
           const SizedBox(height: 10),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -347,7 +353,6 @@ class _OwnerComplaintsScreenState extends ConsumerState<OwnerComplaintsScreen> {
                   style: AppTextStyles.badge.copyWith(color: priorityColor, fontWeight: FontWeight.bold, fontSize: 11),
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(

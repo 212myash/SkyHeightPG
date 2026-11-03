@@ -419,26 +419,31 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppColors.primarySurface,
-                        child: Text(
-                          name.isNotEmpty ? name[0].toUpperCase() : 'T',
-                          style: AppTextStyles.h2.copyWith(color: AppColors.primary),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppColors.primarySurface,
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : 'T',
+                            style: AppTextStyles.h2.copyWith(color: AppColors.primary),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(name, style: AppTextStyles.h2),
-                          Text('$phone • $email', style: AppTextStyles.bodySmall),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: AppTextStyles.h2, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('$phone • $email', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   StatusBadge(status: status),
                 ],
               ),
@@ -865,26 +870,31 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppColors.primarySurface,
-                        child: Text(
-                          initials,
-                          style: AppTextStyles.h3.copyWith(color: AppColors.primary),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.primarySurface,
+                          child: Text(
+                            initials,
+                            style: AppTextStyles.h3.copyWith(color: AppColors.primary),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(name, style: AppTextStyles.h3),
-                          Text(phone, style: AppTextStyles.bodySmall),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: AppTextStyles.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text(phone, style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   StatusBadge(status: status),
                 ],
               ),
@@ -894,32 +904,51 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Assigned Room', style: AppTextStyles.bodySmall),
-                      Text(
-                        'Room $roomNum',
-                        style: AppTextStyles.labelLarge,
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Assigned Room', style: AppTextStyles.bodySmall),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Room $roomNum',
+                            style: AppTextStyles.labelLarge,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text('Joined', style: AppTextStyles.bodySmall),
-                      Text(joiningDate, style: AppTextStyles.labelLarge),
-                    ],
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Joined', style: AppTextStyles.bodySmall),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(joiningDate, style: AppTextStyles.labelLarge),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Monthly Rent', style: AppTextStyles.bodySmall),
-                      Text(
-                        CurrencyFormatter.format(rent),
-                        style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
-                      ),
-                    ],
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Monthly Rent', style: AppTextStyles.bodySmall),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            CurrencyFormatter.format(rent),
+                            style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

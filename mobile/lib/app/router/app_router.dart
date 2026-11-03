@@ -35,10 +35,14 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
   return RouterNotifier(ref);
 });
 
+final GlobalKey<NavigatorState> rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'root');
+
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: notifier,
     redirect: (BuildContext context, GoRouterState state) {
@@ -147,6 +151,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/tenant',
         builder: (context, state) => const TenantMainScreen(),
+      ),
+      GoRoute(
+        path: '/tenant/bills',
+        builder: (context, state) => const TenantMainScreen(initialIndex: 1),
+      ),
+      GoRoute(
+        path: '/tenant/payments',
+        builder: (context, state) => const TenantMainScreen(initialIndex: 2),
+      ),
+      GoRoute(
+        path: '/tenant/complaints',
+        builder: (context, state) => const TenantMainScreen(initialIndex: 3),
+      ),
+      GoRoute(
+        path: '/tenant/profile',
+        builder: (context, state) => const TenantMainScreen(initialIndex: 4),
       ),
     ],
   );

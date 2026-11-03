@@ -33,6 +33,14 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
   }
 
   @override
+  void didUpdateWidget(TenantMainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIndex != widget.initialIndex) {
+      setState(() => _currentIndex = widget.initialIndex);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(

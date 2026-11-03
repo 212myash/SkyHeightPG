@@ -39,8 +39,8 @@ const createRateLimiter = ({
   }
 
   return (req, res, next) => {
-    // Bypass in automated test suite
-    if (process.env.NODE_ENV === "test") {
+    // Bypass in automated test suite or isolated test environment
+    if (process.env.NODE_ENV === "test" || process.env.ISOLATED_TEST === "true") {
       return next();
     }
 

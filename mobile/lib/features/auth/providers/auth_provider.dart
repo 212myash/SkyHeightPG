@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/api_exceptions.dart';
+import '../../../core/notifications/push_notification_service.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../models/user_model.dart';
 
@@ -101,6 +102,10 @@ class AuthNotifier extends Notifier<AuthState> {
           token: token,
           isServerVerified: true,
         );
+        PushNotificationService.registerDeviceToken(
+          apiClient: _api,
+          storage: _storage,
+        ).ignore();
       } else {
         await _storage.clearAll();
         state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true, isServerVerified: false);
@@ -176,6 +181,10 @@ class AuthNotifier extends Notifier<AuthState> {
           token: token,
           isServerVerified: true,
         );
+        PushNotificationService.registerDeviceToken(
+          apiClient: _api,
+          storage: _storage,
+        ).ignore();
         return true;
       } else {
         final message = data?['message'] ?? 'Login failed. Please try again.';
@@ -236,6 +245,10 @@ class AuthNotifier extends Notifier<AuthState> {
           token: token,
           isServerVerified: true,
         );
+        PushNotificationService.registerDeviceToken(
+          apiClient: _api,
+          storage: _storage,
+        ).ignore();
         return true;
       } else {
         final message = data?['message'] ?? 'Registration failed. Please try again.';
@@ -274,6 +287,10 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
+    await PushNotificationService.deregisterDeviceToken(
+      apiClient: _api,
+      storage: _storage,
+    );
     await _storage.clearAll();
     state = const AuthState(status: AuthStatus.unauthenticated, isServerVerified: false);
   }

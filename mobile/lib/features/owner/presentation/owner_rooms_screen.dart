@@ -358,23 +358,28 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Room $roomNumber', style: AppTextStyles.h2),
-                        Text('Floor $floor • $type', style: AppTextStyles.bodySmall),
-                      ],
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Room $roomNumber', style: AppTextStyles.h2, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            Text('Floor $floor • $type', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 StatusBadge(status: status),
               ],
             ),
@@ -640,26 +645,31 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(8),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primarySurface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 20),
                         ),
-                        child: const Icon(Icons.room_preferences, color: AppColors.primary, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Room $roomNumber', style: AppTextStyles.h3),
-                          Text('Floor $floor • $type', style: AppTextStyles.bodySmall),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Room $roomNumber', style: AppTextStyles.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('Floor $floor • $type', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   StatusBadge(status: status),
                 ],
               ),
@@ -689,37 +699,56 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Monthly Rent', style: AppTextStyles.bodySmall),
-                      Text(
-                        CurrencyFormatter.format(rent),
-                        style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text('Occupancy', style: AppTextStyles.bodySmall),
-                      Text(
-                        '$occupied / $capacity',
-                        style: AppTextStyles.labelLarge,
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Vacancies', style: AppTextStyles.bodySmall),
-                      Text(
-                        '$available',
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: available > 0 ? AppColors.success : AppColors.textLight,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Monthly Rent', style: AppTextStyles.bodySmall),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            CurrencyFormatter.format(rent),
+                            style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Occupancy', style: AppTextStyles.bodySmall),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '$occupied / $capacity',
+                            style: AppTextStyles.labelLarge,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Vacancies', style: AppTextStyles.bodySmall),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '$available',
+                            style: AppTextStyles.labelLarge.copyWith(
+                              color: available > 0 ? AppColors.success : AppColors.textLight,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

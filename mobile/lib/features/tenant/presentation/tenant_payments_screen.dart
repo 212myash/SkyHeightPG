@@ -313,17 +313,26 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          CurrencyFormatter.format(amount),
-                          style: AppTextStyles.h2.copyWith(color: AppColors.primary),
-                        ),
-                        Text(dateStr, style: AppTextStyles.bodySmall),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              CurrencyFormatter.format(amount),
+                              style: AppTextStyles.h2.copyWith(color: AppColors.primary),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(dateStr, style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     StatusBadge(status: status),
                   ],
                 ),
@@ -334,14 +343,20 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Method: $method', style: AppTextStyles.bodySmall),
-                    if (method == 'UPI')
-                      Text(
-                        'UTR: $utr',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.w600,
+                    if (method == 'UPI') ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'UTR: $utr',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                    ],
                   ],
                 ),
               ],

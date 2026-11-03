@@ -2,6 +2,7 @@ const Payment = require("../models/Payment");
 const Bill = require("../models/Bill");
 const Tenant = require("../models/Tenant");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * @desc    Record a cash payment directly by Owner
@@ -66,6 +67,24 @@ const recordCashPayment = async (req, res) => {
     // 2. Update Bill paid amount
     bill.paidAmount = Math.round((bill.paidAmount + payAmount) * 100) / 100;
     await bill.save(); // pre-save updates paymentStatus ('paid' or 'partially_paid')
+
+    // Notify tenant of cash payment credit
+    const tenantUser = bill.tenant.user ? (bill.tenant.user._id || bill.tenant.user) : null;
+    if (tenantUser) {
+      pushService.dispatchNotificationAndPush({
+        recipientId: tenantUser,
+        senderId: req.user._id,
+        title: `Payment Received: ₹${payAmount}`,
+        message: `Cash payment of ₹${payAmount} for ${bill.billingMonth} has been credited.`,
+        category: "payment_received",
+        relatedBill: bill._id,
+        data: {
+          screen: "/tenant/payments",
+          billId: bill._id.toString()
+        },
+        channelId: "billing"
+      }).catch((err) => console.error("Cash payment push error:", err.message));
+    }
 
     return res.status(201).json({
       success: true,
@@ -181,6 +200,22 @@ const submitUpiPayment = async (req, res) => {
       notes: notes ? notes.trim() : "UPI payment submitted by tenant"
     });
 
+    // Notify all active Owners of the pending UPI submission
+    pushService.dispatchNotificationAndPush({
+      role: "owner",
+      senderId: req.user._id,
+      title: `New UPI Payment: ₹${payAmount}`,
+      message: `${tenant.fullName} submitted UPI payment (Ref: ${cleanRef}). Please verify.`,
+      category: "payment_received",
+      relatedBill: bill._id,
+      data: {
+        screen: "/owner/payments",
+        paymentId: payment._id.toString(),
+        tenantName: tenant.fullName
+      },
+      channelId: "billing"
+    }).catch((err) => console.error("UPI submission push error:", err.message));
+
     return res.status(201).json({
       success: true,
       message: "UPI payment reference submitted successfully. Status is PENDING verification by owner.",
@@ -271,6 +306,23 @@ const verifyUpiPayment = async (req, res) => {
 
       await payment.save();
 
+      // Notify tenant of payment approval
+      if (payment.tenant && payment.tenant.user) {
+        pushService.dispatchNotificationAndPush({
+          recipientId: payment.tenant.user._id || payment.tenant.user,
+          senderId: req.user._id,
+          title: `Payment Approved: ₹${payment.amount}`,
+          message: `Your UPI payment of ₹${payment.amount} has been verified and credited.`,
+          category: "payment_received",
+          relatedBill: bill._id,
+          data: {
+            screen: "/tenant/payments",
+            paymentId: payment._id.toString()
+          },
+          channelId: "billing"
+        }).catch((err) => console.error("Payment approval push error:", err.message));
+      }
+
       return res.status(200).json({
         success: true,
         message: `Payment of ₹${payment.amount} for ${payment.tenant.fullName} verified successfully.`,
@@ -287,6 +339,23 @@ const verifyUpiPayment = async (req, res) => {
       payment.verifiedAt = new Date();
       if (notes) payment.notes = notes.trim();
       await payment.save();
+
+      // Notify tenant of payment rejection
+      if (payment.tenant && payment.tenant.user) {
+        pushService.dispatchNotificationAndPush({
+          recipientId: payment.tenant.user._id || payment.tenant.user,
+          senderId: req.user._id,
+          title: `Payment Rejected: ₹${payment.amount}`,
+          message: `Your UPI payment reference of ₹${payment.amount} was rejected. Note: ${notes || "Invalid reference"}.`,
+          category: "payment_reminder",
+          relatedBill: payment.bill ? (payment.bill._id || payment.bill) : null,
+          data: {
+            screen: "/tenant/payments",
+            paymentId: payment._id.toString()
+          },
+          channelId: "alerts"
+        }).catch((err) => console.error("Payment rejection push error:", err.message));
+      }
 
       return res.status(200).json({
         success: true,

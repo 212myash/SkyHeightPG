@@ -23,3 +23,6 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn com.google.crypto.tink.**
+
+# Flutter Local Notifications
+-keep class com.dexterous.flutterlocalnotifications.** { *; }

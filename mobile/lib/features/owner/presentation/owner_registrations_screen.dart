@@ -421,7 +421,7 @@ class _OwnerRegistrationsScreenState extends ConsumerState<OwnerRegistrationsScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(req.name, style: AppTextStyles.h3),
+                    Text(req.name, style: AppTextStyles.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 3),
                     Row(
                       children: [
@@ -432,6 +432,7 @@ class _OwnerRegistrationsScreenState extends ConsumerState<OwnerRegistrationsScr
                             req.email,
                             style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -442,7 +443,14 @@ class _OwnerRegistrationsScreenState extends ConsumerState<OwnerRegistrationsScr
                         children: [
                           const Icon(Icons.phone_outlined, size: 14, color: AppColors.textSecondary),
                           const SizedBox(width: 4),
-                          Text(req.phone, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                          Expanded(
+                            child: Text(
+                              req.phone,
+                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
                         ],
                       ),
                     ],

@@ -33,6 +33,14 @@ class _OwnerMainScreenState extends State<OwnerMainScreen> {
   }
 
   @override
+  void didUpdateWidget(OwnerMainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIndex != widget.initialIndex) {
+      setState(() => _currentIndex = widget.initialIndex);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(

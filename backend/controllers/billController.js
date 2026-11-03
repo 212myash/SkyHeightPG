@@ -5,6 +5,7 @@ const MeterReading = require("../models/MeterReading");
 const Payment = require("../models/Payment");
 const PGSettings = require("../models/PGSettings");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * Helper to compute default due date from settings
@@ -126,6 +127,24 @@ const generateBills = async (req, res) => {
         notes: notes ? notes.trim() : ""
       });
 
+      // Dispatch in-app and push notification to tenant asynchronously
+      if (tenant.user) {
+        pushService.dispatchNotificationAndPush({
+          recipientId: tenant.user._id || tenant.user,
+          senderId: req.user._id,
+          title: `New Bill Generated: ${billingMonth}`,
+          message: `Your bill of ₹${bill.totalAmount} for ${billingMonth} is ready. Due date: ${bill.dueDate ? new Date(bill.dueDate).toLocaleDateString("en-IN") : "N/A"}.`,
+          category: "rent_reminder",
+          relatedBill: bill._id,
+          data: {
+            screen: "/tenant/bills",
+            billId: bill._id.toString(),
+            billingMonth: bill.billingMonth
+          },
+          channelId: "billing"
+        }).catch((err) => console.error("Bill push dispatch error:", err.message));
+      }
+
       return res.status(201).json({
         success: true,
         message: `Bill generated successfully for tenant '${tenant.fullName}'.`,
@@ -187,6 +206,31 @@ const generateBills = async (req, res) => {
       });
 
       createdBills.push(bill);
+    }
+
+    // Dispatch notifications asynchronously for all created bills
+    if (createdBills.length > 0) {
+      (async () => {
+        for (const b of createdBills) {
+          const t = activeTenants.find((item) => item._id.toString() === b.tenant.toString());
+          if (t && t.user) {
+            await pushService.dispatchNotificationAndPush({
+              recipientId: t.user._id || t.user,
+              senderId: req.user._id,
+              title: `New Bill Generated: ${billingMonth}`,
+              message: `Your bill of ₹${b.totalAmount} for ${billingMonth} is ready.`,
+              category: "rent_reminder",
+              relatedBill: b._id,
+              data: {
+                screen: "/tenant/bills",
+                billId: b._id.toString(),
+                billingMonth: b.billingMonth
+              },
+              channelId: "billing"
+            }).catch(() => {});
+          }
+        }
+      })().catch((err) => console.error("Bulk push dispatch error:", err.message));
     }
 
     return res.status(201).json({

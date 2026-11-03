@@ -591,31 +591,37 @@ class _OwnerBillingScreenState extends ConsumerState<OwnerBillingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(8)),
-                        child: const Icon(Icons.person_outline, color: AppColors.primary, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(tenantName, style: AppTextStyles.h3),
-                          Text('Room $roomNum • Due: $dueDate', style: AppTextStyles.bodySmall),
-                        ],
-                      ),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.person_outline, color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(tenantName, style: AppTextStyles.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('Room $roomNum • Due: $dueDate', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   StatusBadge(status: status),
                 ],
               ),
               const SizedBox(height: 12),
               const Divider(height: 1, color: AppColors.divider),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                spacing: 12,
+                runSpacing: 4,
                 children: [
                   Text('Rent: ${CurrencyFormatter.format(rent)}', style: AppTextStyles.bodySmall),
                   Text('Electricity: ${CurrencyFormatter.format(elec)}', style: AppTextStyles.bodySmall),
@@ -630,29 +636,48 @@ class _OwnerBillingScreenState extends ConsumerState<OwnerBillingScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Total Bill', style: AppTextStyles.bodySmall),
-                        Text(CurrencyFormatter.format(total), style: AppTextStyles.labelLarge),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Total Bill', style: AppTextStyles.bodySmall),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(CurrencyFormatter.format(total), style: AppTextStyles.labelLarge),
+                          ),
+                        ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('Paid So Far', style: AppTextStyles.bodySmall),
-                        Text(CurrencyFormatter.format(paid), style: AppTextStyles.labelLarge.copyWith(color: AppColors.success)),
-                      ],
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('Paid So Far', style: AppTextStyles.bodySmall),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(CurrencyFormatter.format(paid), style: AppTextStyles.labelLarge.copyWith(color: AppColors.success)),
+                          ),
+                        ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Outstanding', style: AppTextStyles.bodySmall),
-                        Text(
-                          CurrencyFormatter.format(due),
-                          style: AppTextStyles.labelLarge.copyWith(color: due > 0 ? AppColors.error : AppColors.textPrimary),
-                        ),
-                      ],
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Outstanding', style: AppTextStyles.bodySmall),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              CurrencyFormatter.format(due),
+                              style: AppTextStyles.labelLarge.copyWith(color: due > 0 ? AppColors.error : AppColors.textPrimary),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

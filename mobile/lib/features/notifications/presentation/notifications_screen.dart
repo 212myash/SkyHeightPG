@@ -404,46 +404,58 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    notif.category.replaceAll('_', ' ').toUpperCase(),
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (notif.targetRoomNumber != null) ...[
-                  Text(
-                    'Room ${notif.targetRoomNumber}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                const Spacer(),
-                if (notif.createdAt != null)
-                  Text(
-                    '${notif.createdAt!.day}/${notif.createdAt!.month}  ${notif.createdAt!.hour}:${notif.createdAt!.minute.toString().padLeft(2, '0')}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textLight),
-                  ),
-                if (!isOwner) ...[
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () => _showReplyModal(notif),
-                    icon: const Icon(Icons.reply_rounded, size: 16, color: AppColors.primary),
-                    label: const Text('Reply', style: TextStyle(fontSize: 12, color: AppColors.primary)),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        notif.category.replaceAll('_', ' ').toUpperCase(),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                      ),
                     ),
-                  ),
-                ],
+                    if (notif.targetRoomNumber != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        'Room ${notif.targetRoomNumber}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (notif.createdAt != null)
+                      Text(
+                        '${notif.createdAt!.day}/${notif.createdAt!.month}  ${notif.createdAt!.hour}:${notif.createdAt!.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textLight),
+                      ),
+                    if (!isOwner) ...[
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: () => _showReplyModal(notif),
+                        icon: const Icon(Icons.reply_rounded, size: 16, color: AppColors.primary),
+                        label: const Text('Reply', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ],

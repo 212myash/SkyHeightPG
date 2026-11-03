@@ -274,8 +274,19 @@ class _TenantProfileScreenState extends ConsumerState<TenantProfileScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-        Text(value, style: AppTextStyles.labelLarge),
+        Expanded(
+          child: Text(label, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            style: AppTextStyles.labelLarge,
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Tenant = require("../models/Tenant");
 const Notification = require("../models/Notification");
 const generateToken = require("../utils/generateToken");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * @desc    Register a new user
@@ -120,6 +121,18 @@ const registerUser = async (req, res) => {
               audience: "tenant"
             });
           }
+
+          // Dispatch push to owner
+          pushService.sendPushToRole("owner", {
+            title: "New Registration Request",
+            body: `${user.name} (${user.email}) has registered and requires approval.`,
+            data: {
+              category: "registration_update",
+              screen: "/owner/registrations",
+              userId: user._id.toString()
+            },
+            channelId: "alerts"
+          }).catch((err) => console.error("Registration push error:", err.message));
         } catch (notifErr) {
           console.error("Failed to notify owners of registration:", notifErr);
         }

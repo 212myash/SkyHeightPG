@@ -7,12 +7,18 @@ const {
   markAsRead,
   markAllAsRead,
   replyToNotification,
-  getSentNotifications
+  getSentNotifications,
+  registerDeviceToken,
+  removeDeviceToken
 } = require("../controllers/notificationController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 // All notification routes require authentication
 router.use(protect);
+
+// Device token registration & removal (All authenticated users)
+router.post("/device-token", registerDeviceToken);
+router.delete("/device-token", removeDeviceToken);
 
 // User notification endpoints
 router.get("/", getMyNotifications);

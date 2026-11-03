@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "755426495962",
+    "project_id": "sky-height-apartment",
+    "storage_bucket": "sky-height-apartment.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755426495962:android:64daddf01399338c1284e3",
+        "android_client_info": {
+          "package_name": "com.skyheightpg.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACm9O4qdVs7YJxXNxEFL4CYYCRiMVON0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

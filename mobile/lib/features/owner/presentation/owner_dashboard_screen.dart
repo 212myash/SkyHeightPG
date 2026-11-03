@@ -74,18 +74,25 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
           children: [
             const AppBrandLogo.symbol(height: 34),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sky Height Apartment',
-                  style: AppTextStyles.h2.copyWith(fontSize: 17),
-                ),
-                Text(
-                  user != null ? 'Hello, ${user.name}' : 'Owner Portal',
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sky Height Apartment',
+                    style: AppTextStyles.h2.copyWith(fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    user != null ? 'Hello, ${user.name}' : 'Owner Portal',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -409,12 +416,25 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
   }
 
   Widget _buildStatCol(String title, String val, Color color) {
-    return Column(
-      children: [
-        Text(val, style: AppTextStyles.h2.copyWith(color: color)),
-        const SizedBox(height: 2),
-        Text(title, style: AppTextStyles.bodySmall),
-      ],
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(val, style: AppTextStyles.h2.copyWith(color: color)),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              title,
+              style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
     );
   }
   Widget _buildActionTile({

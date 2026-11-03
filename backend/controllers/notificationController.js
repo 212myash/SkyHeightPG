@@ -5,6 +5,7 @@ const User = require("../models/User");
 const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 const VALID_CATEGORIES = [
   "rent_reminder",
@@ -145,6 +146,24 @@ const createNotification = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid audience. Must be 'all', 'room', or 'tenant'."
+      });
+    }
+
+    if (createdNotifications.length > 0) {
+      const recipientIds = [...new Set(createdNotifications.map((n) => n.recipient.toString()))];
+      // Asynchronously trigger push notifications without blocking HTTP response
+      pushService.sendPushToUsers(recipientIds, {
+        title: title.trim(),
+        body: message.trim(),
+        data: {
+          category,
+          audience,
+          screen: "/notifications",
+          count: createdNotifications.length.toString()
+        },
+        channelId: pushService.CATEGORY_CHANNEL_MAP[category] || "announcements"
+      }).catch((err) => {
+        console.error("Async push dispatch error in createNotification:", err.message);
       });
     }
 
@@ -480,6 +499,77 @@ const getSentNotifications = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Register or update device push token
+ * @route   POST /api/notifications/device-token
+ * @access  Private
+ */
+const registerDeviceToken = async (req, res) => {
+  try {
+    const { token, platform, deviceId } = req.body;
+    if (!token || typeof token !== "string" || !token.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Device token is required."
+      });
+    }
+
+    const doc = await pushService.registerDeviceToken({
+      userId: req.user._id,
+      token: token.trim(),
+      platform: platform || "android",
+      deviceId: deviceId || null
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Device token registered successfully.",
+      data: doc
+    });
+  } catch (error) {
+    console.error("Register Device Token Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error registering device token.",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Remove device push token upon logout
+ * @route   DELETE /api/notifications/device-token
+ * @access  Private
+ */
+const removeDeviceToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token || typeof token !== "string" || !token.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Device token is required."
+      });
+    }
+
+    await pushService.removeDeviceToken({
+      userId: req.user._id,
+      token: token.trim()
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Device token removed successfully."
+    });
+  } catch (error) {
+    console.error("Remove Device Token Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error removing device token.",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createNotification,
   getMyNotifications,
@@ -487,5 +577,7 @@ module.exports = {
   markAsRead,
   markAllAsRead,
   replyToNotification,
-  getSentNotifications
+  getSentNotifications,
+  registerDeviceToken,
+  removeDeviceToken
 };

@@ -11,6 +11,8 @@ class SecureStorageService {
   static const String _keyUser = 'skyheight_user_profile';
   static const String _keyRole = 'skyheight_user_role';
   static const String _keyUserId = 'skyheight_user_id';
+  static const String _keyDeviceId = 'skyheight_device_id';
+  static const String _keyDeviceToken = 'skyheight_fcm_token';
 
   SecureStorageService({FlutterSecureStorage? storage})
       : _storage = storage ??
@@ -116,6 +118,55 @@ class SecureStorageService {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<String> getOrCreateDeviceId() async {
+    if (_memoryCache.containsKey(_keyDeviceId)) {
+      return _memoryCache[_keyDeviceId]!;
+    }
+    try {
+      final existing = await _storage.read(key: _keyDeviceId);
+      if (existing != null && existing.isNotEmpty) {
+        _memoryCache[_keyDeviceId] = existing;
+        return existing;
+      }
+    } catch (_) {}
+
+    final newId = 'dev_${DateTime.now().millisecondsSinceEpoch}_${(DateTime.now().microsecondsSinceEpoch % 100000)}';
+    _memoryCache[_keyDeviceId] = newId;
+    try {
+      await _storage.write(key: _keyDeviceId, value: newId);
+    } catch (_) {}
+    return newId;
+  }
+
+  Future<void> saveDeviceToken(String token) async {
+    _memoryCache[_keyDeviceToken] = token;
+    try {
+      await _storage.write(key: _keyDeviceToken, value: token);
+    } catch (_) {}
+  }
+
+  Future<String?> getDeviceToken() async {
+    if (_memoryCache.containsKey(_keyDeviceToken)) {
+      return _memoryCache[_keyDeviceToken];
+    }
+    try {
+      final token = await _storage.read(key: _keyDeviceToken);
+      if (token != null) {
+        _memoryCache[_keyDeviceToken] = token;
+      }
+      return token;
+    } catch (_) {
+      return _memoryCache[_keyDeviceToken];
+    }
+  }
+
+  Future<void> clearDeviceToken() async {
+    _memoryCache.remove(_keyDeviceToken);
+    try {
+      await _storage.delete(key: _keyDeviceToken);
+    } catch (_) {}
   }
 
   Future<void> clearAll() async {

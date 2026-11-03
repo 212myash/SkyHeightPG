@@ -4,6 +4,7 @@ const Tenant = require("../models/Tenant");
 const Room = require("../models/Room");
 const User = require("../models/User");
 const { isValidObjectId } = require("../utils/validateObjectId");
+const pushService = require("../services/pushNotificationService");
 
 /**
  * Helper: ensure community conversation exists
@@ -360,6 +361,30 @@ const sendMessage = async (req, res) => {
     await conversation.save();
 
     const populatedMessage = await Message.findById(message._id).populate("sender", "name email role");
+
+    // Asynchronously notify conversation participants
+    try {
+      const recipientIds = (conversation.participants || [])
+        .filter((p) => p.toString() !== req.user._id.toString())
+        .map((p) => p.toString());
+
+      if (recipientIds.length > 0) {
+        pushService.sendPushToUsers(recipientIds, {
+          title: req.user.name || "Sky Height PG",
+          body: trimmedContent.length > 80 ? trimmedContent.substring(0, 77) + "..." : trimmedContent,
+          data: {
+            category: "chat_message",
+            screen: "/chat/conversation",
+            conversationId: conversation._id.toString(),
+            senderId: req.user._id.toString(),
+            senderName: req.user.name || ""
+          },
+          channelId: "messages"
+        }).catch((err) => console.error("Chat push dispatch error:", err.message));
+      }
+    } catch (pushErr) {
+      console.error("Failed to trigger chat push:", pushErr.message);
+    }
 
     return res.status(201).json({
       success: true,

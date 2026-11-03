@@ -322,17 +322,25 @@ class _TenantBillsScreenState extends ConsumerState<TenantBillsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Outstanding Balance',
-                      style: AppTextStyles.labelLarge.copyWith(
-                        color: balance > 0 ? AppColors.error : AppColors.success,
+                    Expanded(
+                      child: Text(
+                        'Outstanding Balance',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: balance > 0 ? AppColors.error : AppColors.success,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
-                      CurrencyFormatter.format(balance),
-                      style: AppTextStyles.h2.copyWith(
-                        fontSize: 18,
-                        color: balance > 0 ? AppColors.error : AppColors.success,
+                    const SizedBox(width: 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        CurrencyFormatter.format(balance),
+                        style: AppTextStyles.h2.copyWith(
+                          fontSize: 18,
+                          color: balance > 0 ? AppColors.error : AppColors.success,
+                        ),
                       ),
                     ),
                   ],
@@ -357,8 +365,14 @@ class _TenantBillsScreenState extends ConsumerState<TenantBillsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.bodyMedium),
-        Text(CurrencyFormatter.format(amount), style: AppTextStyles.labelLarge),
+        Expanded(
+          child: Text(label, style: AppTextStyles.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        const SizedBox(width: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(CurrencyFormatter.format(amount), style: AppTextStyles.labelLarge),
+        ),
       ],
     );
   }

@@ -147,12 +147,12 @@ class _OwnerCreateNotificationScreenState extends ConsumerState<OwnerCreateNotif
                   children: [
                     Text('Audience', style: AppTextStyles.labelMedium),
                     const SizedBox(height: 10),
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
                       children: [
                         _buildAudienceChip('all', 'All Tenants', Icons.groups_rounded),
-                        const SizedBox(width: 8),
                         _buildAudienceChip('room', 'Room', Icons.meeting_room_rounded),
-                        const SizedBox(width: 8),
                         _buildAudienceChip('tenant', 'Tenant', Icons.person_rounded),
                       ],
                     ),

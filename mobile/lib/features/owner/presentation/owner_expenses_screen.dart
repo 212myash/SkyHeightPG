@@ -544,20 +544,25 @@ class _OwnerExpensesScreenState extends ConsumerState<OwnerExpensesScreen> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTextStyles.h3),
+                      Text(title, style: AppTextStyles.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
-                      Text('Recorded on $dateStr', style: AppTextStyles.bodySmall),
+                      Text('Recorded on $dateStr', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
-                Text(
-                  CurrencyFormatter.format(amount),
-                  style: AppTextStyles.h2.copyWith(color: AppColors.error),
+                const SizedBox(width: 10),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    CurrencyFormatter.format(amount),
+                    style: AppTextStyles.h2.copyWith(color: AppColors.error),
+                  ),
                 ),
               ],
             ),

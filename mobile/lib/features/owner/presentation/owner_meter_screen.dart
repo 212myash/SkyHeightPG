@@ -421,7 +421,15 @@ class _OwnerMeterScreenState extends ConsumerState<OwnerMeterScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Reading: $prev → $curr kWh ($units Units)', style: AppTextStyles.bodySmall),
+                                  Expanded(
+                                    child: Text(
+                                      'Reading: $prev → $curr kWh ($units Units)',
+                                      style: AppTextStyles.bodySmall,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
                                   Text(date, style: AppTextStyles.bodySmall.copyWith(fontSize: 11)),
                                 ],
                               ),
@@ -553,35 +561,43 @@ class _OwnerMeterScreenState extends ConsumerState<OwnerMeterScreen> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: hasReading ? AppColors.primarySurface : AppColors.background,
-                                                borderRadius: BorderRadius.circular(10),
+                                        Expanded(
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: hasReading ? AppColors.primarySurface : AppColors.background,
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: Icon(
+                                                  Icons.speed_rounded,
+                                                  color: hasReading ? AppColors.primary : AppColors.textLight,
+                                                  size: 22,
+                                                ),
                                               ),
-                                              child: Icon(
-                                                Icons.speed_rounded,
-                                                color: hasReading ? AppColors.primary : AppColors.textLight,
-                                                size: 22,
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('Room $roomNum', style: AppTextStyles.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                                    Text('Floor $floor', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text('Room $roomNum', style: AppTextStyles.h3),
-                                                Text('Floor $floor', style: AppTextStyles.bodySmall),
-                                              ],
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
+                                        const SizedBox(width: 8),
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.end,
                                           children: [
                                             if (hasReading) ...[
-                                              Text(CurrencyFormatter.format(amt), style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary)),
+                                              FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Text(CurrencyFormatter.format(amt), style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary)),
+                                              ),
                                               Text('$units Units Consumed', style: AppTextStyles.bodySmall),
                                             ] else ...[
                                               const StatusBadge(status: 'pending', customLabel: 'Pending Reading'),

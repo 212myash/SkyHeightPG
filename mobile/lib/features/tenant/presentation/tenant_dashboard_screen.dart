@@ -95,15 +95,25 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
           children: [
             const AppBrandLogo.symbol(height: 34),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Sky Height Apartment', style: AppTextStyles.h2.copyWith(fontSize: 17)),
-                Text(
-                  user != null ? 'Welcome, ${user.name}' : 'Tenant Portal',
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sky Height Apartment',
+                    style: AppTextStyles.h2.copyWith(fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    user != null ? 'Welcome, ${user.name}' : 'Tenant Portal',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -195,26 +205,31 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
-                            borderRadius: BorderRadius.circular(10),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.meeting_room_rounded, color: AppColors.primary, size: 24),
                           ),
-                          child: const Icon(Icons.meeting_room_rounded, color: AppColors.primary, size: 24),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Room $roomNum', style: AppTextStyles.h2),
-                            Text('Floor $floor', style: AppTextStyles.bodySmall),
-                          ],
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Room $roomNum', style: AppTextStyles.h2, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                Text('Floor $floor', style: AppTextStyles.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     StatusBadge(status: status),
                   ],
                 ),
@@ -224,25 +239,38 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Monthly Rent', style: AppTextStyles.bodySmall),
-                        Text(
-                          CurrencyFormatter.format(rent),
-                          style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Monthly Rent', style: AppTextStyles.bodySmall),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              CurrencyFormatter.format(rent),
+                              style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Security Deposit', style: AppTextStyles.bodySmall),
-                        Text(
-                          CurrencyFormatter.format(deposit),
-                          style: AppTextStyles.labelLarge,
-                        ),
-                      ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Security Deposit', style: AppTextStyles.bodySmall),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              CurrencyFormatter.format(deposit),
+                              style: AppTextStyles.labelLarge,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
