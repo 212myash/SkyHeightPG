@@ -1,0 +1,836 @@
+{
+  "generatedAt": "2026-11-03T18:35:58.554Z",
+  "databaseName": "test",
+  "backupFile": "F:\\SkyHeightPG\\docs\\backups\\prod_db_snapshot_fresh_1793730958547.json",
+  "totalCollections": 13,
+  "counts": {
+    "messages": 0,
+    "payments": 0,
+    "notifications": 16,
+    "rooms": 0,
+    "expenses": 0,
+    "pgsettings": 1,
+    "conversations": 11,
+    "tenants": 1,
+    "meterreadings": 8,
+    "occupancyhistories": 0,
+    "users": 15,
+    "complaints": 7,
+    "bills": 14
+  },
+  "genuineRecords": {
+    "users": [
+      {
+        "id": "6ae80e085ca93446b8f6e8a4",
+        "name": "Vaishanavi Sonawane",
+        "email": "radha118223@gmail.com",
+        "role": "tenant"
+      },
+      {
+        "id": "6ae80f4a5ca93446b8f6e8a5",
+        "name": "Yash Raj",
+        "email": "212myashraj@gmail.com",
+        "role": "owner"
+      }
+    ],
+    "pgsettings": [
+      {
+        "id": "6ae6c7720d213bb788527a31",
+        "pgName": "Sky Height PG",
+        "upiId": "6206825865@oksbi",
+        "rate": 13
+      }
+    ]
+  },
+  "proposedDeletions": [
+    {
+      "collection": "users",
+      "documentId": "6ae6ee2b0eaa37ed6cbea6db",
+      "identifier": "DevTest Tenant <devtest_tenant@skyheight.in>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: devtest_tenant@skyheight.in). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae70c9e0eaa37ed6cbea6e6",
+      "identifier": "Rahul Sharma <tenant_1793526942475@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenant_1793526942475@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae70ca10eaa37ed6cbea6e7",
+      "identifier": "Tenant Added By Owner <tenant_by_owner_1793526945177@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenant_by_owner_1793526945177@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae70cba0eaa37ed6cbea6ea",
+      "identifier": "Rahul Tenant A <tenanta_1793526965606@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenanta_1793526965606@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae70cbb0eaa37ed6cbea6ec",
+      "identifier": "Amit Tenant B <tenantb_1793526965606@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenantb_1793526965606@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae70ee10eaa37ed6cbea6ff",
+      "identifier": "Rahul Tenant A <tenanta_1793527518463@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenanta_1793527518463@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae70ee20eaa37ed6cbea701",
+      "identifier": "Amit Tenant B <tenantb_1793527518463@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenantb_1793527518463@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae71181c242281fec839219",
+      "identifier": "Rahul Tenant A <tenanta_1793528189409@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenanta_1793528189409@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae71182c242281fec83921b",
+      "identifier": "Amit Tenant B <tenantb_1793528189409@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenantb_1793528189409@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae72264482d8e2df83cebec",
+      "identifier": "Rahul Tenant A <tenanta_1793532513201@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenanta_1793532513201@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae72265482d8e2df83cebee",
+      "identifier": "Amit Tenant B <tenantb_1793532513201@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenantb_1793532513201@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae724c060dd360913144ff6",
+      "identifier": "Rahul Tenant A <tenanta_1793533117859@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenanta_1793533117859@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "users",
+      "documentId": "6ae724c160dd360913144ff8",
+      "identifier": "Amit Tenant B <tenantb_1793533117859@skyheight-test.com>",
+      "role": "tenant",
+      "classification": "SAFE TO DELETE",
+      "reason": "Automated test fixture created during testing sessions (matches test pattern: tenantb_1793533117859@skyheight-test.com). Not linked to any genuine users.",
+      "dependencies": {
+        "tenantsLinked": [
+          "6ae724c160dd360913144ff9"
+        ],
+        "notificationsReceived": 0,
+        "notificationsSent": 0
+      }
+    },
+    {
+      "collection": "tenants",
+      "documentId": "6ae724c160dd360913144ff9",
+      "identifier": "Tenant doc for user: tenantb_1793533117859@skyheight-test.com",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned tenant record created for test user (tenantb_1793533117859@skyheight-test.com). Referenced room [6ae724be60dd360913144ff5] does not exist in rooms collection.",
+      "dependencies": {
+        "userExists": true,
+        "userEmail": "tenantb_1793533117859@skyheight-test.com",
+        "roomExists": false,
+        "billsLinked": 1,
+        "complaintsLinked": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae6cb4a3c12a54fa65c680a",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae6cb433c12a54fa65c6806] exists: false, room [6ae6cb413c12a54fa65c6803] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae6cb4b3c12a54fa65c680b",
+      "identifier": "Bill 2026-11 (Total: ₹8500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae6cb443c12a54fa65c6808] exists: false, room [6ae6cb413c12a54fa65c6804] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae6ce983e6af1ca39c45bd0",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae6ce923e6af1ca39c45bcc] exists: false, room [6ae6ce903e6af1ca39c45bc9] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae6ce993e6af1ca39c45bd1",
+      "identifier": "Bill 2026-11 (Total: ₹8500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae6ce933e6af1ca39c45bce] exists: false, room [6ae6ce903e6af1ca39c45bca] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae70cc40eaa37ed6cbea6ef",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae70cba0eaa37ed6cbea6eb] exists: false, room [6ae70cb80eaa37ed6cbea6e8] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae70cc50eaa37ed6cbea6f0",
+      "identifier": "Bill 2026-11 (Total: ₹8500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae70cbc0eaa37ed6cbea6ed] exists: false, room [6ae70cb80eaa37ed6cbea6e9] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae70ee60eaa37ed6cbea704",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae70ee10eaa37ed6cbea700] exists: false, room [6ae70edf0eaa37ed6cbea6fd] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae70ee80eaa37ed6cbea705",
+      "identifier": "Bill 2026-11 (Total: ₹8500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae70ee20eaa37ed6cbea702] exists: false, room [6ae70edf0eaa37ed6cbea6fe] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae71187c242281fec83921e",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae71181c242281fec83921a] exists: false, room [6ae7117fc242281fec839217] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae71189c242281fec83921f",
+      "identifier": "Bill 2026-11 (Total: ₹8500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae71182c242281fec83921c] exists: false, room [6ae7117fc242281fec839218] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae7226b482d8e2df83cebf1",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae72265482d8e2df83cebed] exists: false, room [6ae72262482d8e2df83cebea] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae7226d482d8e2df83cebf2",
+      "identifier": "Bill 2026-11 (Total: ₹8500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae72266482d8e2df83cebef] exists: false, room [6ae72262482d8e2df83cebeb] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae724c660dd360913144ffb",
+      "identifier": "Bill 2026-11 (Total: ₹9500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae724c060dd360913144ff7] exists: false, room [6ae724be60dd360913144ff4] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": false,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "bills",
+      "documentId": "6ae724c860dd360913144ffc",
+      "identifier": "Bill 2026-11 (Total: ₹26708500)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Legacy test bill. Referenced tenant [6ae724c160dd360913144ff9] exists: true, room [6ae724be60dd360913144ff5] exists: false. Created during legacy automated test runs.",
+      "dependencies": {
+        "tenantExists": true,
+        "roomExists": false,
+        "linkedPayments": 0
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae6cb473c12a54fa65c6809",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae6cb413c12a54fa65c6803]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae6ce963e6af1ca39c45bcf",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae6ce903e6af1ca39c45bc9]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae70cbf0eaa37ed6cbea6ee",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae70cb80eaa37ed6cbea6e8]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae70ee40eaa37ed6cbea703",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae70edf0eaa37ed6cbea6fd]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae71184c242281fec83921d",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae7117fc242281fec839217]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae72269482d8e2df83cebf0",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae72262482d8e2df83cebea]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae724c460dd360913144ffa",
+      "identifier": "MeterReading 2026-11 (Units: 150)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae724be60dd360913144ff4]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "meterreadings",
+      "documentId": "6ae785f642d7bc444f40c07f",
+      "identifier": "MeterReading 2026-11 (Units: 50)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Orphaned meter reading referencing deleted test room [6ae6cb413c12a54fa65c6804]. No active room or tenant uses this reading.",
+      "dependencies": {
+        "roomExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae6cb513c12a54fa65c680f",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (resolved)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae6cb433c12a54fa65c6806] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae6ce9e3e6af1ca39c45bd5",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (resolved)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae6ce923e6af1ca39c45bcc] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae70ccf0eaa37ed6cbea6f4",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (resolved)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae70cba0eaa37ed6cbea6eb] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae70eee0eaa37ed6cbea709",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (resolved)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae70ee10eaa37ed6cbea700] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae71190c242281fec839223",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (resolved)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae71181c242281fec83921a] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae72272482d8e2df83cebf6",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (resolved)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae72265482d8e2df83cebed] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "complaints",
+      "documentId": "6ae724ce60dd360913145000",
+      "identifier": "Complaint: \"Bathroom Tap Leaking\" (open)",
+      "classification": "SAFE TO DELETE",
+      "reason": "Test complaint ticket filed during test runs. Referenced test tenant [6ae724c060dd360913144ff7] is defunct.",
+      "dependencies": {
+        "tenantExists": false
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae826d7e12b3b0207357aba",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae826dee12b3b0207357ac2",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae826e7e12b3b0207357ac6",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae826fde12b3b0207357ad2",
+      "identifier": "Notification: \"Reply from Phase Test Tenant 1\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae8277a27ed99e6bd22fdaa",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae8278427ed99e6bd22fdb1",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae8278927ed99e6bd22fdb5",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae827a127ed99e6bd22fdc1",
+      "identifier": "Notification: \"Reply from Phase Test Tenant 1\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae830ff8c447b559fe245b3",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae831068c447b559fe245ba",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae8310a8c447b559fe245be",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae831298c447b559fe245ca",
+      "identifier": "Notification: \"Reply from Phase Test Tenant 1\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae83ab72f539c15ae672ba8",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae83abc2f539c15ae672bb0",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae83ac12f539c15ae672bb5",
+      "identifier": "Notification: \"New Registration Request\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "notifications",
+      "documentId": "6ae83ace2f539c15ae672bc3",
+      "identifier": "Notification: \"Reply from Phase Test Tenant 1\"",
+      "classification": "NEEDS REVIEW",
+      "reason": "Legacy test notification emitted during previous test suites to test account (212myashraj@gmail.com).",
+      "dependencies": {
+        "recipientExists": true,
+        "recipientEmail": "212myashraj@gmail.com"
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae826dce12b3b0207357abe",
+      "identifier": "Conversation: type=community, room=N/A",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae826e9e12b3b0207357ac7",
+      "identifier": "Conversation: type=room, room=6ae826d9e12b3b0207357abc",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae826f0e12b3b0207357aca",
+      "identifier": "Conversation: type=room, room=6ae826eae12b3b0207357ac9",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae8279127ed99e6bd22fdb6",
+      "identifier": "Conversation: type=room, room=6ae8277d27ed99e6bd22fdac",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae8279727ed99e6bd22fdb9",
+      "identifier": "Conversation: type=room, room=6ae8279227ed99e6bd22fdb8",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae8310f8c447b559fe245bf",
+      "identifier": "Conversation: type=room, room=6ae831028c447b559fe245b5",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae831168c447b559fe245c2",
+      "identifier": "Conversation: type=room, room=6ae831108c447b559fe245c1",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae83a7e01037968bd9466c2",
+      "identifier": "Conversation: type=room, room=6ae83a7801037968bd9466be",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae83a9e5e85e78779982b5a",
+      "identifier": "Conversation: type=room, room=6ae83a995e85e78779982b56",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae83ac32f539c15ae672bb6",
+      "identifier": "Conversation: type=room, room=6ae83ab92f539c15ae672baa",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    },
+    {
+      "collection": "conversations",
+      "documentId": "6ae83ac82f539c15ae672bba",
+      "identifier": "Conversation: type=room, room=6ae83ac42f539c15ae672bb9",
+      "classification": "SAFE TO DELETE",
+      "reason": "Defunct test conversation channel created during test suite runs. Not connected to genuine users or rooms.",
+      "dependencies": {
+        "messageCount": 0
+      }
+    }
+  ]
+}
