@@ -131,5 +131,78 @@ void main() {
 
       expect(tapped, isTrue);
     });
+
+    test('Dashboard summary resilient parsing handles both legacy and updated backend payloads', () {
+      // 1. Live Render backend payload (legacy key schema)
+      final liveRenderPayload = {
+        'month': '2026-11',
+        'rooms': {
+          'total': 8,
+          'occupied': 0,
+          'vacant': 5,
+          'totalCapacity': 11,
+          'occupiedBeds': 8,
+          'availableBeds': 3
+        },
+        'tenants': {'active': 14},
+        'financials': {
+          'monthlyRentCollection': 76500,
+          'pendingPayments': 49500,
+          'monthlyExpenses': 0,
+          'netIncome': 76500
+        },
+        'electricity': {
+          'unitsConsumed': 1050,
+          'totalAmount': 12600
+        },
+        'complaints': {'open': 0},
+        'recentTransactions': [
+          {
+            'amount': 5000,
+            'paymentMethod': 'upi',
+            'paymentDate': '2026-11-01T10:00:00.000Z',
+            'tenant': {'fullName': 'Aman Sharma'}
+          }
+        ]
+      };
+
+      // Resilient extraction logic
+      final rooms = (liveRenderPayload['rooms'] as Map<String, dynamic>?) ?? {};
+      final occupancy = (liveRenderPayload['occupancy'] as Map<String, dynamic>?) ?? rooms;
+      final financials = (liveRenderPayload['financials'] as Map<String, dynamic>?) ?? {};
+      final complaints = (liveRenderPayload['complaints'] as Map<String, dynamic>?) ?? {};
+      final electricity = (liveRenderPayload['electricity'] as Map<String, dynamic>?) ?? {};
+      final tenants = (liveRenderPayload['tenants'] as Map<String, dynamic>?) ?? {};
+
+      final totalRooms = (rooms['total'] ?? occupancy['total'] ?? 0) as num;
+      final totalBeds = (occupancy['totalBeds'] ?? occupancy['totalCapacity'] ?? rooms['totalCapacity'] ?? 0) as num;
+      final occupiedBeds = (occupancy['occupiedBeds'] ?? rooms['occupiedBeds'] ?? 0) as num;
+      final availableBeds = (occupancy['availableBeds'] ?? rooms['availableBeds'] ?? 0) as num;
+      final activeTenants = (tenants['active'] ?? tenants['total'] ?? 0) as num;
+
+      final totalCollected = (financials['totalCollected'] ?? financials['monthlyRentCollection'] ?? 0) as num;
+      final pendingAmount = (financials['pendingAmount'] ?? financials['pendingPayments'] ?? 0) as num;
+      final totalExpenses = (financials['totalExpenses'] ?? financials['monthlyExpenses'] ?? 0) as num;
+      final netProfit = (financials['netProfit'] ?? financials['netIncome'] ?? 0) as num;
+      final unitsConsumed = (electricity['totalUnits'] ?? electricity['unitsConsumed'] ?? 0) as num;
+      final openComplaints = (complaints['open'] ?? complaints['openComplaints'] ?? 0) as num;
+
+      expect(totalRooms, 8);
+      expect(totalBeds, 11);
+      expect(occupiedBeds, 8);
+      expect(availableBeds, 3);
+      expect(activeTenants, 14);
+      expect(totalCollected, 76500);
+      expect(pendingAmount, 49500);
+      expect(totalExpenses, 0);
+      expect(netProfit, 76500);
+      expect(unitsConsumed, 1050);
+      expect(openComplaints, 0);
+
+      // Verify formatted currency values
+      expect(CurrencyFormatter.format(totalCollected), '₹76,500');
+      expect(CurrencyFormatter.format(pendingAmount), '₹49,500');
+      expect(CurrencyFormatter.format(netProfit), '₹76,500');
+    });
   });
 }

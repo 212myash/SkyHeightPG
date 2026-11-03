@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/dashboard_metric_card.dart';
@@ -68,20 +70,41 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text(
-              'Sky Height PG',
-              style: AppTextStyles.h2.copyWith(fontSize: 18),
-            ),
-            Text(
-              user != null ? 'Hello, ${user.name}' : 'Owner Portal',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            const AppBrandLogo.symbol(height: 34),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sky Height Apartment',
+                  style: AppTextStyles.h2.copyWith(fontSize: 17),
+                ),
+                Text(
+                  user != null ? 'Hello, ${user.name}' : 'Owner Portal',
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.how_to_reg_outlined),
+            onPressed: () => context.push('/owner/registrations').then((_) => _fetchSummary()),
+            tooltip: 'Registrations',
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.push('/notifications'),
+            tooltip: 'Notifications',
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            onPressed: () => context.push('/chat'),
+            tooltip: 'Messages & Groups',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _fetchSummary,
@@ -105,23 +128,32 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
       );
     }
 
-    final occupancy = _summaryData?['occupancy'] as Map<String, dynamic>? ?? {};
-    final financials = _summaryData?['financials'] as Map<String, dynamic>? ?? {};
-    final complaints = _summaryData?['complaints'] as Map<String, dynamic>? ?? {};
-    final electricity = _summaryData?['electricity'] as Map<String, dynamic>? ?? {};
+    final rooms = (_summaryData?['rooms'] as Map<String, dynamic>?) ?? {};
+    final occupancy = (_summaryData?['occupancy'] as Map<String, dynamic>?) ?? rooms;
+    final financials = (_summaryData?['financials'] as Map<String, dynamic>?) ?? {};
+    final complaints = (_summaryData?['complaints'] as Map<String, dynamic>?) ?? {};
+    final electricity = (_summaryData?['electricity'] as Map<String, dynamic>?) ?? {};
+    final tenants = (_summaryData?['tenants'] as Map<String, dynamic>?) ?? {};
+    final recentTransactions = (_summaryData?['recentTransactions'] as List<dynamic>?) ?? [];
 
-    final totalBeds = (occupancy['totalBeds'] ?? 0) as num;
-    final occupiedBeds = (occupancy['occupiedBeds'] ?? 0) as num;
-    final availableBeds = (occupancy['availableBeds'] ?? 0) as num;
-    final occupancyRate = totalBeds > 0 ? ((occupiedBeds / totalBeds) * 100).toStringAsFixed(1) : '0';
+    final totalRooms = (rooms['total'] ?? occupancy['total'] ?? occupancy['totalRooms'] ?? 0) as num;
+    final totalBeds = (occupancy['totalBeds'] ?? occupancy['totalCapacity'] ?? rooms['totalCapacity'] ?? 0) as num;
+    final occupiedBeds = (occupancy['occupiedBeds'] ?? rooms['occupiedBeds'] ?? 0) as num;
+    final availableBeds = (occupancy['availableBeds'] ?? rooms['availableBeds'] ?? 0) as num;
+    final activeTenants = (tenants['active'] ?? tenants['total'] ?? 0) as num;
 
-    final totalCollected = (financials['totalCollected'] ?? 0) as num;
-    final pendingAmount = (financials['pendingAmount'] ?? 0) as num;
-    final totalExpenses = (financials['totalExpenses'] ?? 0) as num;
-    final netProfit = (financials['netProfit'] ?? 0) as num;
+    final occupancyRate = totalBeds > 0
+        ? ((occupiedBeds / totalBeds) * 100).toStringAsFixed(1)
+        : (occupancy['occupancyRate']?.toString() ?? '0');
 
-    final openComplaints = (complaints['open'] ?? 0) as num;
-    final unitsConsumed = (electricity['totalUnits'] ?? 0) as num;
+    final totalCollected = (financials['totalCollected'] ?? financials['monthlyRentCollection'] ?? 0) as num;
+    final pendingAmount = (financials['pendingAmount'] ?? financials['pendingPayments'] ?? 0) as num;
+    final totalExpenses = (financials['totalExpenses'] ?? financials['monthlyExpenses'] ?? 0) as num;
+    final netProfit = (financials['netProfit'] ?? financials['netIncome'] ?? 0) as num;
+
+    final openComplaints = (complaints['open'] ?? complaints['openComplaints'] ?? 0) as num;
+    final unitsConsumed = (electricity['totalUnits'] ?? electricity['unitsConsumed'] ?? 0) as num;
+    final electricityAmount = (electricity['totalAmount'] ?? 0) as num;
 
     return RefreshIndicator(
       onRefresh: _fetchSummary,
@@ -166,13 +198,48 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildStatCol('Total Beds', '$totalBeds', AppColors.textPrimary),
+                    _buildStatCol('Rooms', '$totalRooms', AppColors.textPrimary),
+                    _buildStatCol('Tenants', '$activeTenants', AppColors.info),
+                    _buildStatCol('Capacity', '$totalBeds', AppColors.textSecondary),
                     _buildStatCol('Occupied', '$occupiedBeds', AppColors.primary),
-                    _buildStatCol('Available', '$availableBeds', AppColors.success),
+                    _buildStatCol('Vacancies', '$availableBeds', AppColors.success),
                   ],
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+
+          // Quick Management Actions
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionTile(
+                  icon: Icons.how_to_reg_rounded,
+                  label: 'Approvals',
+                  color: AppColors.primary,
+                  onTap: () => context.push('/owner/registrations').then((_) => _fetchSummary()),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildActionTile(
+                  icon: Icons.campaign_rounded,
+                  label: 'Broadcast',
+                  color: AppColors.info,
+                  onTap: () => context.push('/notifications/create'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildActionTile(
+                  icon: Icons.forum_rounded,
+                  label: 'Messages',
+                  color: AppColors.success,
+                  onTap: () => context.push('/chat'),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
 
@@ -231,6 +298,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                 child: DashboardMetricCard(
                   title: 'Electricity Usage',
                   value: '$unitsConsumed Units',
+                  subtitle: electricityAmount > 0 ? CurrencyFormatter.format(electricityAmount) : null,
                   icon: Icons.bolt_rounded,
                   accentColor: Colors.amber.shade700,
                   onTap: () => context.push('/owner/meter'),
@@ -241,6 +309,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                 child: DashboardMetricCard(
                   title: 'Open Complaints',
                   value: '$openComplaints Open',
+                  subtitle: openComplaints == 0 ? 'All resolved' : null,
                   icon: Icons.report_problem_outlined,
                   accentColor: openComplaints > 0 ? AppColors.error : AppColors.success,
                   onTap: () => context.push('/owner/complaints'),
@@ -248,6 +317,91 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+
+          // Recent Verified Payments Section
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Recent Verified Payments', style: AppTextStyles.h3),
+              TextButton(
+                onPressed: () => context.push('/owner/payments'),
+                child: const Text('View All'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          if (recentTransactions.isEmpty)
+            AppCard(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'No recent payments found for this period.',
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+            )
+          else
+            AppCard(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: recentTransactions.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final tx = recentTransactions[index] as Map<String, dynamic>? ?? {};
+                  final tenantName = (tx['tenant'] is Map ? tx['tenant']['fullName'] : null) ?? 'Tenant';
+                  final amount = (tx['amount'] ?? 0) as num;
+                  final method = ((tx['paymentMethod'] ?? 'UPI') as String).toUpperCase();
+                  final date = DateFormatter.formatDate(tx['paymentDate']);
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppColors.successLight,
+                          child: Icon(
+                            method == 'UPI' ? Icons.qr_code_2_rounded : Icons.payments_rounded,
+                            size: 18,
+                            color: AppColors.success,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tenantName,
+                                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$method • $date',
+                                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '+${CurrencyFormatter.format(amount)}',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.success,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           const SizedBox(height: 24),
         ],
       ),
@@ -261,6 +415,46 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
         const SizedBox(height: 2),
         Text(title, style: AppTextStyles.bodySmall),
       ],
+    );
+  }
+  Widget _buildActionTile({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: color.withValues(alpha: 0.12),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

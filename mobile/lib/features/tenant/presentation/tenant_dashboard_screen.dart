@@ -1,7 +1,9 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_card.dart';
@@ -23,6 +25,7 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
   String? _error;
   Map<String, dynamic>? _tenantData;
   Map<String, dynamic>? _latestBill;
+  List<dynamic> _allBills = [];
   Map<String, dynamic>? _latestMeter;
 
   @override
@@ -57,8 +60,11 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
 
         if (billsRes != null && billsRes['success'] == true) {
           final bills = billsRes['data'] as List<dynamic>? ?? [];
+          _allBills = bills;
           if (bills.isNotEmpty) {
             _latestBill = bills.first as Map<String, dynamic>?;
+          } else {
+            _latestBill = null;
           }
         }
 
@@ -85,17 +91,33 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text('Sky Height PG', style: AppTextStyles.h2.copyWith(fontSize: 18)),
-            Text(
-              user != null ? 'Welcome, ${user.name}' : 'Tenant Portal',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            const AppBrandLogo.symbol(height: 34),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Sky Height Apartment', style: AppTextStyles.h2.copyWith(fontSize: 17)),
+                Text(
+                  user != null ? 'Welcome, ${user.name}' : 'Tenant Portal',
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.push('/notifications'),
+            tooltip: 'Notifications',
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            onPressed: () => context.push('/chat'),
+            tooltip: 'Chat & Groups',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _fetchTenantDashboard,
@@ -131,7 +153,6 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
     final room = tenant['room'] is Map ? tenant['room'] as Map<String, dynamic> : null;
     final roomNum = room?['roomNumber'] ?? '-';
     final floor = room?['floor'] ?? '-';
-    final bed = tenant['assignedBed'] ?? '-';
     final rent = tenant['monthlyRent'] ?? 0;
     final deposit = tenant['securityDeposit'] ?? 0;
     final status = (tenant['status'] ?? 'ACTIVE').toString();
@@ -143,9 +164,21 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
     final paidAmount = _latestBill?['paidAmount'] ?? 0;
     final pendingAmount = (totalBill - paidAmount).clamp(0, double.infinity);
 
+    // Cumulative arrears across all historical unpaid bills
+    num totalArrears = 0;
+    for (final b in _allBills) {
+      final bStatus = (b['paymentStatus'] ?? '').toString().toLowerCase();
+      if (bStatus != 'paid') {
+        final tot = (b['totalAmount'] as num?) ?? 0;
+        final pd = (b['paidAmount'] as num?) ?? 0;
+        totalArrears += (tot - pd).clamp(0, double.infinity);
+      }
+    }
+
     // Latest meter fields
-    final unitsConsumed = _latestMeter?['unitsConsumed'] ?? 0;
-    final currentReading = _latestMeter?['currentReading'] ?? 0;
+    final latestReading = (_latestMeter?['latestReading'] as Map<String, dynamic>?) ?? _latestMeter;
+    final unitsConsumed = latestReading?['unitsConsumed'] ?? _latestMeter?['unitsConsumed'] ?? 0;
+    final currentReading = latestReading?['currentReading'] ?? _latestMeter?['currentReading'] ?? 0;
 
     return RefreshIndicator(
       onRefresh: _fetchTenantDashboard,
@@ -177,7 +210,7 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Room $roomNum', style: AppTextStyles.h2),
-                            Text('Floor $floor • Bed $bed', style: AppTextStyles.bodySmall),
+                            Text('Floor $floor', style: AppTextStyles.bodySmall),
                           ],
                         ),
                       ],
@@ -215,6 +248,48 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 14),
+
+          // Community & Communication Shortcuts
+          Row(
+            children: [
+              Expanded(
+                child: _buildTenantAction(
+                  icon: Icons.meeting_room_outlined,
+                  label: 'Room Chat',
+                  color: AppColors.info,
+                  onTap: () => context.push('/chat'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildTenantAction(
+                  icon: Icons.support_agent_rounded,
+                  label: 'Owner Chat',
+                  color: AppColors.primary,
+                  onTap: () => context.push('/chat'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildTenantAction(
+                  icon: Icons.forum_outlined,
+                  label: 'Community',
+                  color: AppColors.success,
+                  onTap: () => context.push('/chat'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildTenantAction(
+                  icon: Icons.notifications_none_rounded,
+                  label: 'Notices',
+                  color: AppColors.warning,
+                  onTap: () => context.push('/notifications'),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
 
@@ -271,6 +346,28 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
                           ),
                         ],
                       ),
+                      if (totalArrears > pendingAmount) ...[
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total Arrears (All Bills)',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              CurrencyFormatter.format(totalArrears),
+                              style: AppTextStyles.h3.copyWith(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
           ),
@@ -302,6 +399,48 @@ class _TenantDashboardScreenState extends ConsumerState<TenantDashboardScreen> {
           ),
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+  Widget _buildTenantAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: color.withValues(alpha: 0.12),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

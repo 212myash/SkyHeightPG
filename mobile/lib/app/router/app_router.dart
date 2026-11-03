@@ -11,6 +11,12 @@ import '../../features/owner/presentation/owner_meter_screen.dart';
 import '../../features/owner/presentation/owner_billing_screen.dart';
 import '../../features/owner/presentation/owner_complaints_screen.dart';
 import '../../features/owner/presentation/owner_expenses_screen.dart';
+import '../../features/owner/presentation/owner_registrations_screen.dart';
+import '../../features/owner/presentation/owner_payments_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/notifications/presentation/owner_create_notification_screen.dart';
+import '../../features/chat/presentation/chat_list_screen.dart';
+import '../../features/chat/presentation/conversation_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/tenant/presentation/tenant_main_screen.dart';
 
@@ -111,6 +117,32 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/owner/expenses',
         builder: (context, state) => const OwnerExpensesScreen(),
+      ),
+      GoRoute(
+        path: '/owner/registrations',
+        builder: (context, state) => const OwnerRegistrationsScreen(),
+      ),
+      GoRoute(
+        path: '/owner/payments',
+        builder: (context, state) => const OwnerPaymentsScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/notifications/create',
+        builder: (context, state) => const OwnerCreateNotificationScreen(),
+      ),
+      GoRoute(
+        path: '/chat',
+        builder: (context, state) => const ChatListScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:id',
+        builder: (context, state) => ConversationScreen(
+          conversationId: state.pathParameters['id']!,
+        ),
       ),
       GoRoute(
         path: '/tenant',

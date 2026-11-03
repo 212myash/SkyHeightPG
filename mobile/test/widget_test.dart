@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sky_height_pg/core/constants/app_assets.dart';
 import 'package:sky_height_pg/core/widgets/app_button.dart';
 import 'package:sky_height_pg/core/widgets/app_card.dart';
 import 'package:sky_height_pg/core/widgets/status_badge.dart';
@@ -77,6 +78,7 @@ void main() {
       );
 
       expect(find.text('Card Content'), findsOneWidget);
+      expect(find.byType(AppCard), findsOneWidget);
     });
 
     testWidgets('DashboardMetricCard displays title, value, and icon', (tester) async {
@@ -105,7 +107,7 @@ void main() {
           home: Scaffold(
             body: EmptyStateView(
               title: 'No Data Found',
-              description: 'Try again later',
+              description: 'Please try again later',
               actionText: 'Retry Now',
               onAction: () => actionTapped = true,
             ),
@@ -114,7 +116,7 @@ void main() {
       );
 
       expect(find.text('No Data Found'), findsOneWidget);
-      expect(find.text('Try again later'), findsOneWidget);
+      expect(find.text('Please try again later'), findsOneWidget);
       expect(find.text('Retry Now'), findsOneWidget);
 
       await tester.tap(find.text('Retry Now'));
@@ -141,6 +143,30 @@ void main() {
 
       await tester.tap(find.text('Try Again'));
       expect(retried, isTrue);
+    });
+
+    testWidgets('AppBrandLogo renders official asset variants correctly', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                AppBrandLogo.primary(height: 56),
+                AppBrandLogo.compact(height: 32),
+                AppBrandLogo.symbol(height: 48),
+                AppBrandLogo.icon(height: 64, width: 64),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AppBrandLogo), findsNWidgets(4));
+      expect(find.byType(Image), findsNWidgets(4));
+      expect(AppAssets.primaryLogo, contains('primary_logo.png'));
+      expect(AppAssets.compactLogo, contains('compact_logo.png'));
+      expect(AppAssets.standaloneSymbol, contains('standalone_symbol.png'));
+      expect(AppAssets.appIcon, contains('app_icon_source.png'));
     });
   });
 }

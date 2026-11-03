@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -133,7 +134,7 @@ class OwnerMoreScreen extends ConsumerWidget {
             child: _buildTile(
               icon: Icons.logout_rounded,
               title: 'Sign Out',
-              subtitle: 'Log out from Sky Height PG',
+              subtitle: 'Log out from Sky Height Apartment',
               iconColor: AppColors.error,
               textColor: AppColors.error,
               onTap: () async {
@@ -148,6 +149,21 @@ class OwnerMoreScreen extends ConsumerWidget {
                   ref.read(authProvider.notifier).logout();
                 }
               },
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Official Brand Footer
+          Center(
+            child: Column(
+              children: [
+                const AppBrandLogo.compact(height: 24),
+                const SizedBox(height: 6),
+                Text(
+                  'Sky Height Apartment • v1.0.0',
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight, fontSize: 11),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),

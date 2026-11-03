@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -11,6 +12,7 @@ import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../auth/providers/auth_provider.dart';
+import 'occupancy_history_view.dart';
 
 class TenantProfileScreen extends ConsumerStatefulWidget {
   const TenantProfileScreen({super.key});
@@ -156,6 +158,26 @@ class _TenantProfileScreenState extends ConsumerState<TenantProfileScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+
+        // Occupancy History Timeline Action
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.history_rounded, color: AppColors.primary, size: 22),
+            ),
+            title: const Text('Occupancy History & Timeline', style: AppTextStyles.labelLarge),
+            subtitle: const Text('View all your room stays, dates, and transfers', style: AppTextStyles.bodySmall),
+            trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
+            onTap: () => OccupancyHistorySheet.show(context),
+          ),
+        ),
         const SizedBox(height: 20),
 
         // Emergency Contact
@@ -224,6 +246,21 @@ class _TenantProfileScreenState extends ConsumerState<TenantProfileScreen> {
                     ref.read(authProvider.notifier).logout();
                   }
                 },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Official Brand Footer
+        Center(
+          child: Column(
+            children: [
+              const AppBrandLogo.compact(height: 24),
+              const SizedBox(height: 6),
+              Text(
+                'Sky Height Apartment • v1.0.0',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight, fontSize: 11),
               ),
             ],
           ),

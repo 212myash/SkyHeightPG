@@ -12,6 +12,7 @@ import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -142,15 +143,17 @@ class _OwnerMeterScreenState extends ConsumerState<OwnerMeterScreen> {
           final units = (currentVal >= previousReading) ? (currentVal - previousReading) : 0.0;
           final estAmount = units * _electricityRate;
 
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -228,6 +231,7 @@ class _OwnerMeterScreenState extends ConsumerState<OwnerMeterScreen> {
                       controller: currentController,
                       label: 'Current Meter Reading (kWh)',
                       hint: 'e.g. ${(previousReading + 50).toStringAsFixed(0)}',
+                      isRequired: true,
                       keyboardType: TextInputType.number,
                       prefixIcon: Icons.speed_rounded,
                       validator: (v) {
@@ -323,8 +327,9 @@ class _OwnerMeterScreenState extends ConsumerState<OwnerMeterScreen> {
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

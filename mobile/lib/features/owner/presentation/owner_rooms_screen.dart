@@ -10,6 +10,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/status_badge.dart';
@@ -120,15 +121,17 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(
         builder: (modalContext, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -156,6 +159,7 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                             controller: roomNumberController,
                             label: 'Room Number',
                             hint: 'e.g. R103',
+                            isRequired: true,
                             prefixIcon: Icons.door_front_door_outlined,
                             validator: (v) => Validators.required(v, 'Room number required'),
                           ),
@@ -167,6 +171,7 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                             controller: floorController,
                             label: 'Floor',
                             hint: '1',
+                            isRequired: true,
                             keyboardType: TextInputType.number,
                             prefixIcon: Icons.layers_outlined,
                             validator: (v) => Validators.positiveNumber(v, 'Floor required'),
@@ -199,6 +204,7 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                             controller: rentController,
                             label: 'Monthly Rent (₹)',
                             hint: '8500',
+                            isRequired: true,
                             keyboardType: TextInputType.number,
                             prefixIcon: Icons.currency_rupee,
                             validator: (v) => Validators.positiveNumber(v, 'Valid rent required'),
@@ -210,6 +216,7 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                             controller: capacityController,
                             label: 'Bed Capacity',
                             hint: '2',
+                            isRequired: true,
                             keyboardType: TextInputType.number,
                             prefixIcon: Icons.bed_outlined,
                             validator: (v) => Validators.positiveNumber(v, 'Valid capacity required'),
@@ -268,12 +275,14 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                         if (!formKey.currentState!.validate()) return;
                         setModalState(() => isSubmitting = true);
 
+                        final cap = int.tryParse(capacityController.text.trim()) ?? 2;
                         final payload = <String, dynamic>{
                           'roomNumber': roomNumberController.text.trim().toUpperCase(),
                           'floor': int.tryParse(floorController.text.trim()) ?? 1,
                           'roomType': selectedType,
                           'monthlyRent': double.tryParse(rentController.text.trim()) ?? 0,
-                          'capacity': int.tryParse(capacityController.text.trim()) ?? 1,
+                          'maxOccupancy': cap,
+                          'capacity': cap,
                           'amenities': selectedAmenities,
                         };
                         if (isEditing) {
@@ -316,8 +325,9 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }
@@ -376,8 +386,8 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStatItem('Monthly Rent', CurrencyFormatter.format(rent), AppColors.primary),
-                  _buildStatItem('Occupied', '$occupied Beds', occupied > 0 ? AppColors.warning : AppColors.textPrimary),
-                  _buildStatItem('Available', '$available Beds', available > 0 ? AppColors.success : AppColors.textLight),
+                  _buildStatItem('Occupants', '$occupied / $capacity', occupied > 0 ? AppColors.warning : AppColors.textPrimary),
+                  _buildStatItem('Vacancies', '$available', available > 0 ? AppColors.success : AppColors.textLight),
                 ],
               ),
             ),
@@ -615,6 +625,7 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
     final available = capacity - occupied;
     final status = (room['status'] ?? 'AVAILABLE').toString();
     final amenities = (room['amenities'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    final occupantNames = (room['occupantNames'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -654,6 +665,26 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
               ),
               const SizedBox(height: 14),
               const Divider(height: 1, color: AppColors.divider),
+              if (occupantNames.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.people_alt_outlined, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Occupants: ${occupantNames.join(", ")}',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -671,9 +702,9 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text('Occupied', style: AppTextStyles.bodySmall),
+                      Text('Occupancy', style: AppTextStyles.bodySmall),
                       Text(
-                        '$occupied / $capacity Beds',
+                        '$occupied / $capacity',
                         style: AppTextStyles.labelLarge,
                       ),
                     ],
@@ -681,9 +712,9 @@ class _OwnerRoomsScreenState extends ConsumerState<OwnerRoomsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('Available', style: AppTextStyles.bodySmall),
+                      Text('Vacancies', style: AppTextStyles.bodySmall),
                       Text(
-                        '$available Beds',
+                        '$available',
                         style: AppTextStyles.labelLarge.copyWith(
                           color: available > 0 ? AppColors.success : AppColors.textLight,
                         ),

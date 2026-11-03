@@ -212,7 +212,16 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       final data = response.data;
-      if (data != null && data['success'] == true && data['token'] != null) {
+      if (data != null && data['success'] == true) {
+        if (data['approvalStatus'] == 'pending' || data['token'] == null) {
+          state = state.copyWith(
+            status: AuthStatus.unauthenticated,
+            errorMessage: data['message']?.toString() ?? 'Registration submitted. Awaiting owner approval.',
+            isServerVerified: false,
+          );
+          return true;
+        }
+
         final token = data['token'].toString();
         final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
 

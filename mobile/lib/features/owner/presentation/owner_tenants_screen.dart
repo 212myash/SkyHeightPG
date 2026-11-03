@@ -12,9 +12,11 @@ import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../tenant/presentation/occupancy_history_view.dart';
 
 class OwnerTenantsScreen extends ConsumerStatefulWidget {
   const OwnerTenantsScreen({super.key});
@@ -97,7 +99,6 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
     final emailController = TextEditingController();
     final phoneController = TextEditingController();
     final passwordController = TextEditingController(text: 'Tenant123!');
-    final bedController = TextEditingController(text: 'Bed 1');
     final rentController = TextEditingController();
     final depositController = TextEditingController(text: '10000');
     final streetController = TextEditingController();
@@ -123,73 +124,79 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(
         builder: (modalContext, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Register Tenant', style: AppTextStyles.h2),
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () => Navigator.of(modalContext).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: nameController,
-                      label: 'Full Name',
-                      hint: 'e.g. Rahul Sharma',
-                      prefixIcon: Icons.person_outline,
-                      validator: (v) => Validators.required(v, 'Full name required'),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppTextField(
-                            controller: emailController,
-                            label: 'Email Address',
-                            hint: 'rahul@example.com',
-                            keyboardType: TextInputType.emailAddress,
-                            prefixIcon: Icons.email_outlined,
-                            validator: Validators.email,
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Register Tenant', style: AppTextStyles.h2),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded),
+                            onPressed: () => Navigator.of(modalContext).pop(),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppTextField(
-                            controller: phoneController,
-                            label: 'Phone Number',
-                            hint: '10 digits',
-                            keyboardType: TextInputType.phone,
-                            prefixIcon: Icons.phone_outlined,
-                            validator: Validators.phone,
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        controller: nameController,
+                        label: 'Full Name',
+                        hint: 'e.g. Rahul Sharma',
+                        isRequired: true,
+                        prefixIcon: Icons.person_outline,
+                        validator: (v) => Validators.required(v, 'Full name required'),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppTextField(
+                              controller: emailController,
+                              label: 'Email Address',
+                              hint: 'rahul@example.com',
+                              isRequired: true,
+                              keyboardType: TextInputType.emailAddress,
+                              prefixIcon: Icons.email_outlined,
+                              validator: Validators.email,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    AppTextField(
-                      controller: passwordController,
-                      label: 'Initial Login Password',
-                      hint: 'At least 6 chars',
-                      isPassword: true,
-                      prefixIcon: Icons.lock_outline,
-                      validator: Validators.password,
-                    ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AppTextField(
+                              controller: phoneController,
+                              label: 'Phone Number',
+                              hint: '10 digits',
+                              isRequired: true,
+                              keyboardType: TextInputType.phone,
+                              prefixIcon: Icons.phone_outlined,
+                              validator: Validators.phone,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      AppTextField(
+                        controller: passwordController,
+                        label: 'Initial Login Password',
+                        hint: 'At least 6 chars',
+                        isRequired: true,
+                        isPassword: true,
+                        prefixIcon: Icons.lock_outline,
+                        validator: Validators.password,
+                      ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
                       initialValue: selectedRoomId,
@@ -205,7 +212,7 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                         final rent = rMap['monthlyRent'] ?? 0;
                         return DropdownMenuItem<String>(
                           value: rMap['_id'].toString(),
-                          child: Text('$num ($occ/$cap beds) - ₹$rent/mo'),
+                          child: Text('$num ($occ/$cap occupants) - ₹$rent/mo'),
                         );
                       }).toList(),
                       onChanged: (val) {
@@ -221,35 +228,21 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppTextField(
-                            controller: bedController,
-                            label: 'Assigned Bed',
-                            hint: 'e.g. Bed 1',
-                            prefixIcon: Icons.bed_outlined,
-                            validator: (v) => Validators.required(v, 'Bed label required'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppTextField(
-                            controller: rentController,
-                            label: 'Monthly Rent (₹)',
-                            hint: '8500',
-                            keyboardType: TextInputType.number,
-                            prefixIcon: Icons.currency_rupee,
-                            validator: (v) => Validators.positiveNumber(v, 'Valid rent required'),
-                          ),
-                        ),
-                      ],
+                    AppTextField(
+                      controller: rentController,
+                      label: 'Monthly Rent (₹)',
+                      hint: '8500',
+                      isRequired: true,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.currency_rupee,
+                      validator: (v) => Validators.positiveNumber(v, 'Valid rent required'),
                     ),
                     const SizedBox(height: 12),
                     AppTextField(
                       controller: depositController,
                       label: 'Security Deposit (₹)',
                       hint: '10000',
+                      isRequired: true,
                       keyboardType: TextInputType.number,
                       prefixIcon: Icons.account_balance_wallet_outlined,
                       validator: (v) => Validators.positiveNumber(v, 'Valid deposit required'),
@@ -338,8 +331,7 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                           'phone': phoneController.text.trim(),
                           'password': passwordController.text,
                           'roomId': selectedRoomId,
-                          'assignedBed': bedController.text.trim(),
-                          'monthlyRent': double.tryParse(rentController.text.trim()) ?? 0,
+                              'monthlyRent': double.tryParse(rentController.text.trim()) ?? 0,
                           'securityDeposit': double.tryParse(depositController.text.trim()) ?? 0,
                           'joiningDate': selectedJoiningDate.toIso8601String(),
                           'address': {
@@ -384,7 +376,8 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                 ),
               ),
             ),
-          );
+          ),
+        );
         },
       ),
     );
@@ -397,7 +390,6 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
     final phone = tenant['phone'] ?? '-';
     final room = tenant['room'] is Map ? tenant['room'] as Map<String, dynamic> : null;
     final roomNum = room?['roomNumber'] ?? 'Not Assigned';
-    final bed = tenant['assignedBed'] ?? '-';
     final rent = tenant['monthlyRent'] ?? 0;
     final deposit = tenant['securityDeposit'] ?? 0;
     final status = (tenant['status'] ?? 'ACTIVE').toString();
@@ -456,7 +448,7 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                 decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   children: [
-                    _buildRow('Assigned Room & Bed', 'Room $roomNum ($bed)'),
+                    _buildRow('Assigned Room', 'Room $roomNum'),
                     const Divider(height: 16, color: AppColors.divider),
                     _buildRow('Monthly Rent', CurrencyFormatter.format(rent)),
                     const Divider(height: 16, color: AppColors.divider),
@@ -474,7 +466,26 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  side: const BorderSide(color: AppColors.border),
+                  foregroundColor: AppColors.textPrimary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.history_rounded, size: 18),
+                label: const Text('View Occupancy History'),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  OccupancyHistorySheet.show(
+                    context,
+                    tenantId: tenantId,
+                    tenantName: name,
+                  );
+                },
+              ),
+              const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
@@ -509,7 +520,7 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                         final confirm = await AppDialog.showConfirmation(
                           context: context,
                           title: 'Vacate Tenant $name',
-                          content: 'Are you sure you want to mark $name as vacated? Their assigned bed in Room $roomNum will be released and marked available.',
+                          content: 'Are you sure you want to mark $name as vacated? Room $roomNum occupancy will be released and marked available.',
                           confirmText: 'Mark Vacated',
                           isDestructive: true,
                         );
@@ -519,7 +530,7 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                             final res = await api.put(ApiEndpoints.vacateTenant(tenantId));
                             if (mounted) {
                               if (res.data?['success'] == true) {
-                                AppDialog.showSnackBar(context, '$name marked as vacated. Bed released.');
+                                AppDialog.showSnackBar(context, '$name marked as vacated. Room occupancy released.');
                                 _fetchTenantsAndRooms();
                               } else {
                                 AppDialog.showSnackBar(context, res.data?['message'] ?? 'Action failed', isError: true);
@@ -546,8 +557,8 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
         ? _rooms.firstWhere((r) => r['_id'].toString() != currentRoomId)['_id'].toString()
         : null;
 
-    final bedController = TextEditingController(text: 'Bed 1');
     final rentController = TextEditingController();
+    final reasonController = TextEditingController();
 
     if (newRoomId != null) {
       final r = _rooms.firstWhere((e) => e['_id'].toString() == newRoomId, orElse: () => null);
@@ -565,104 +576,124 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(
         builder: (modalContext, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('Transfer Room for $tenantName', style: AppTextStyles.h2),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: newRoomId,
-                  decoration: InputDecoration(
-                    labelText: 'Select New Room',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  items: _rooms.where((r) => r['_id'].toString() != currentRoomId).map((r) {
-                    final num = r['roomNumber'] ?? 'Room';
-                    final cap = r['capacity'] ?? 1;
-                    final occ = r['occupiedBeds'] ?? 0;
-                    final rent = r['monthlyRent'] ?? 0;
-                    return DropdownMenuItem<String>(
-                      value: r['_id'].toString(),
-                      child: Text('$num ($occ/$cap beds) - ₹$rent'),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setModalState(() {
-                        newRoomId = val;
-                        final r = _rooms.firstWhere((e) => e['_id'].toString() == val, orElse: () => null);
-                        if (r != null && r['monthlyRent'] != null) {
-                          rentController.text = r['monthlyRent'].toString();
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Transfer Room', style: AppTextStyles.h2),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => Navigator.of(modalContext).pop(),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Select new room for $tenantName',
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      initialValue: newRoomId,
+                      decoration: InputDecoration(
+                        labelText: 'Select New Room',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: _rooms.where((r) => r['_id'].toString() != currentRoomId).map((r) {
+                        final num = r['roomNumber'] ?? 'Room';
+                        final cap = r['capacity'] ?? 1;
+                        final occ = r['occupiedBeds'] ?? 0;
+                        final rent = r['monthlyRent'] ?? 0;
+                        return DropdownMenuItem<String>(
+                          value: r['_id'].toString(),
+                          child: Text('$num ($occ/$cap occupants) - ₹$rent'),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() {
+                            newRoomId = val;
+                            final r = _rooms.firstWhere((e) => e['_id'].toString() == val, orElse: () => null);
+                            if (r != null && r['monthlyRent'] != null) {
+                              rentController.text = r['monthlyRent'].toString();
+                            }
+                          });
                         }
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: bedController,
-                  label: 'New Assigned Bed',
-                  hint: 'e.g. Bed 2',
-                  prefixIcon: Icons.bed_outlined,
-                ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: rentController,
-                  label: 'New Monthly Rent (₹)',
-                  hint: '8500',
-                  keyboardType: TextInputType.number,
-                  prefixIcon: Icons.currency_rupee,
-                ),
-                const SizedBox(height: 24),
-                AppButton(
-                  label: 'Confirm Transfer',
-                  isLoading: isSubmitting,
-                  onPressed: () async {
-                    if (newRoomId == null) {
-                      AppDialog.showSnackBar(modalContext, 'Please select a new room', isError: true);
-                      return;
-                    }
-                    setModalState(() => isSubmitting = true);
+                      },
+                    ),
 
-                    try {
-                      final api = ref.read(apiClientProvider);
-                      final res = await api.put(
-                        ApiEndpoints.changeRoom(tenantId),
-                        data: {
-                          'newRoomId': newRoomId,
-                          'assignedBed': bedController.text.trim(),
-                          'monthlyRent': double.tryParse(rentController.text.trim()) ?? 0,
-                        },
-                      );
-
-                      if (modalContext.mounted) {
-                        Navigator.of(modalContext).pop();
-                      }
-                      if (mounted) {
-                        if (res.data?['success'] == true) {
-                          AppDialog.showSnackBar(context, 'Room transfer completed successfully!');
-                          _fetchTenantsAndRooms();
-                        } else {
-                          AppDialog.showSnackBar(context, res.data?['message'] ?? 'Transfer failed', isError: true);
+                    const SizedBox(height: 12),
+                    AppTextField(
+                      controller: rentController,
+                      label: 'New Monthly Rent (₹)',
+                      hint: '8500',
+                      isRequired: true,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.currency_rupee,
+                    ),
+                    const SizedBox(height: 12),
+                    AppTextField(
+                      controller: reasonController,
+                      label: 'Reason for Transfer (Optional)',
+                      hint: 'e.g. Upgrading room, room change request',
+                      prefixIcon: Icons.notes_rounded,
+                    ),
+                    const SizedBox(height: 24),
+                    AppButton(
+                      label: 'Confirm Transfer',
+                      isLoading: isSubmitting,
+                      onPressed: () async {
+                        if (newRoomId == null) {
+                          AppDialog.showSnackBar(modalContext, 'Please select a new room', isError: true);
+                          return;
                         }
-                      }
-                    } catch (e) {
-                      if (modalContext.mounted) {
-                        setModalState(() => isSubmitting = false);
-                        AppDialog.showSnackBar(modalContext, e.toString(), isError: true);
-                      }
-                    }
-                  },
+                        setModalState(() => isSubmitting = true);
+
+                        try {
+                          final api = ref.read(apiClientProvider);
+                          final res = await api.put(
+                            ApiEndpoints.changeRoom(tenantId),
+                            data: {
+                              'newRoomId': newRoomId,
+                              'monthlyRent': double.tryParse(rentController.text.trim()) ?? 0,
+                              'reason': reasonController.text.trim(),
+                            },
+                          );
+
+                          if (modalContext.mounted) {
+                            Navigator.of(modalContext).pop();
+                          }
+                          if (mounted) {
+                            if (res.data?['success'] == true) {
+                              AppDialog.showSnackBar(context, 'Room transfer completed successfully!');
+                              _fetchTenantsAndRooms();
+                            } else {
+                              AppDialog.showSnackBar(context, res.data?['message'] ?? 'Transfer failed', isError: true);
+                            }
+                          }
+                        } catch (e) {
+                          if (modalContext.mounted) {
+                            setModalState(() => isSubmitting = false);
+                            AppDialog.showSnackBar(modalContext, e.toString(), isError: true);
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
@@ -813,7 +844,6 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
     final phone = t['phone'] ?? '-';
     final room = t['room'] is Map ? t['room'] as Map<String, dynamic> : null;
     final roomNum = room?['roomNumber'] ?? '-';
-    final bed = t['assignedBed'] ?? '-';
     final rent = t['monthlyRent'] ?? 0;
     final status = (t['status'] ?? 'ACTIVE').toString();
     final joiningDate = t['joiningDate'] != null ? DateFormatter.formatDate(t['joiningDate'].toString()) : '-';
@@ -867,9 +897,9 @@ class _OwnerTenantsScreenState extends ConsumerState<OwnerTenantsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Room / Bed', style: AppTextStyles.bodySmall),
+                      Text('Assigned Room', style: AppTextStyles.bodySmall),
                       Text(
-                        'Room $roomNum (Bed $bed)',
+                        'Room $roomNum',
                         style: AppTextStyles.labelLarge,
                       ),
                     ],

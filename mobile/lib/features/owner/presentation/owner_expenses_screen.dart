@@ -13,6 +13,7 @@ import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class OwnerExpensesScreen extends ConsumerStatefulWidget {
@@ -131,67 +132,71 @@ class _OwnerExpensesScreenState extends ConsumerState<OwnerExpensesScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (modalContext, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isEditing ? 'Edit Expense' : 'Record New Expense',
-                          style: AppTextStyles.h2,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(modalContext).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: titleController,
-                      label: 'Expense Title *',
-                      hint: 'e.g. RO Filter Replacement',
-                      prefixIcon: Icons.title_rounded,
-                      validator: (v) => Validators.required(v, 'Please enter a title'),
-                    ),
-                    const SizedBox(height: 14),
-                    DropdownButtonFormField<String>(
-                      initialValue: category,
-                      decoration: InputDecoration(
-                        labelText: 'Category *',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            isEditing ? 'Edit Expense' : 'Record New Expense',
+                            style: AppTextStyles.h2,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(modalContext).pop(),
+                          ),
+                        ],
                       ),
-                      items: _categories.map((c) {
-                        return DropdownMenuItem<String>(
-                          value: c['value'],
-                          child: Text(c['label']!),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setModalState(() => category = val);
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    AppTextField(
-                      controller: amountController,
-                      label: 'Amount (₹) *',
-                      hint: 'e.g. 1500',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      prefixIcon: Icons.currency_rupee_rounded,
-                      validator: (v) => Validators.positiveNumber(v, 'Enter valid amount'),
-                    ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        controller: titleController,
+                        label: 'Expense Title',
+                        hint: 'e.g. RO Filter Replacement',
+                        isRequired: true,
+                        prefixIcon: Icons.title_rounded,
+                        validator: (v) => Validators.required(v, 'Please enter a title'),
+                      ),
+                      const SizedBox(height: 14),
+                      DropdownButtonFormField<String>(
+                        initialValue: category,
+                        decoration: InputDecoration(
+                          labelText: 'Category *',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        items: _categories.map((c) {
+                          return DropdownMenuItem<String>(
+                            value: c['value'],
+                            child: Text(c['label']!),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) setModalState(() => category = val);
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      AppTextField(
+                        controller: amountController,
+                        label: 'Amount (₹)',
+                        hint: 'e.g. 1500',
+                        isRequired: true,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        prefixIcon: Icons.currency_rupee_rounded,
+                        validator: (v) => Validators.positiveNumber(v, 'Enter valid amount'),
+                      ),
                     const SizedBox(height: 14),
                     InkWell(
                       onTap: () async {
@@ -289,8 +294,9 @@ class _OwnerExpensesScreenState extends ConsumerState<OwnerExpensesScreen> {
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

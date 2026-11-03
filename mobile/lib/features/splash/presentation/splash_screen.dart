@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -55,42 +56,32 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Official Sky Height Apartment App Icon Badge
                 Container(
-                  width: 96,
-                  height: 96,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withAlpha(76),
-                        blurRadius: 20,
+                        color: AppColors.primary.withAlpha(60),
+                        blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.apartment_rounded,
-                      color: Colors.white,
-                      size: 52,
-                    ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: const AppBrandLogo.icon(height: 100, width: 100),
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Official Primary Brand Wordmark
+                const AppBrandLogo.primary(height: 38),
+                const SizedBox(height: 10),
                 Text(
-                  'Sky Height PG',
-                  style: AppTextStyles.h1.copyWith(
-                    color: AppColors.textPrimary,
-                    fontSize: 28,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Smart & Transparent PG Living',
+                  'Smart & Transparent Living',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
+                    letterSpacing: 0.2,
                   ),
                 ),
                 const SizedBox(height: 48),

@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/network/api_endpoints.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/app_dialog.dart';
+import '../../../core/widgets/app_snack_bar.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -25,15 +26,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _selectedRole = 'TENANT';
   bool _isLoading = false;
-  bool _isOwnerRegistered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkOwnerStatus();
-  }
 
   @override
   void dispose() {
@@ -44,20 +37,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _checkOwnerStatus() async {
-    try {
-      final api = ref.read(apiClientProvider);
-      final res = await api.get(ApiEndpoints.ownerStatus);
-      if (mounted && res.data != null) {
-        setState(() {
-          _isOwnerRegistered = res.data['ownerExists'] == true;
-          if (_isOwnerRegistered) {
-            _selectedRole = 'TENANT';
-          }
-        });
-      }
-    } catch (_) {}
-  }
+
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
@@ -69,14 +49,38 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
       password: _passwordController.text,
-      role: _selectedRole,
+      role: 'TENANT',
     );
 
     if (mounted) {
       setState(() => _isLoading = false);
-      if (!success) {
+      if (success) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 48),
+            title: const Text('Application Submitted'),
+            content: const Text(
+              'Your registration has been submitted successfully and is pending approval by the apartment Owner.\n\nYou can log in once your account has been approved.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  context.pop();
+                },
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+                child: const Text('Return to Sign In'),
+              ),
+            ],
+          ),
+        );
+      } else {
         final errorMsg = ref.read(authProvider).errorMessage ?? 'Registration failed. Please try again.';
-        AppDialog.showSnackBar(context, errorMsg, isError: true);
+        AppSnackBar.error(context, errorMsg);
       }
     }
   }
@@ -92,8 +96,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onPressed: () => context.pop(),
         ),
       ),
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Center(
+        child: KeyboardDismissible(
+          child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
             child: ConstrainedBox(
@@ -101,13 +107,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Center(
+                    child: const AppBrandLogo.compact(height: 38),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    'Join Sky Height PG',
+                    'Join Sky Height Apartment',
                     style: AppTextStyles.h1.copyWith(fontSize: 24),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Enter your details to create an account',
+                    'Enter your details to create your resident or owner account',
                     style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 24),
@@ -123,6 +133,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             controller: _nameController,
                             label: 'Full Name',
                             hint: 'e.g. Rahul Sharma',
+                            isRequired: true,
                             prefixIcon: Icons.person_outline_rounded,
                             validator: (v) => Validators.required(v, 'Please enter your name'),
                             textInputAction: TextInputAction.next,
@@ -132,6 +143,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             controller: _emailController,
                             label: 'Email Address',
                             hint: 'e.g. rahul@example.com',
+                            isRequired: true,
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Icons.email_outlined,
                             validator: Validators.email,
@@ -142,6 +154,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             controller: _phoneController,
                             label: 'Phone Number',
                             hint: '10-digit mobile number',
+                            isRequired: true,
                             keyboardType: TextInputType.phone,
                             prefixIcon: Icons.phone_outlined,
                             validator: Validators.phone,
@@ -152,6 +165,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             controller: _passwordController,
                             label: 'Password',
                             hint: 'At least 6 characters',
+                            isRequired: true,
                             isPassword: true,
                             prefixIcon: Icons.lock_outline_rounded,
                             validator: Validators.password,
@@ -159,57 +173,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Role selection
-                          Text('Account Type', style: AppTextStyles.labelMedium),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ChoiceChip(
-                                  label: const Center(child: Text('Tenant')),
-                                  selected: _selectedRole == 'TENANT',
-                                  selectedColor: AppColors.primarySurface,
-                                  labelStyle: TextStyle(
-                                    color: _selectedRole == 'TENANT' ? AppColors.primary : AppColors.textSecondary,
-                                    fontWeight: _selectedRole == 'TENANT' ? FontWeight.w700 : FontWeight.w500,
-                                  ),
-                                  side: BorderSide(
-                                    color: _selectedRole == 'TENANT' ? AppColors.primary : AppColors.border,
-                                  ),
-                                  onSelected: (selected) {
-                                    if (selected) setState(() => _selectedRole = 'TENANT');
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ChoiceChip(
-                                  label: const Center(child: Text('Owner')),
-                                  selected: _selectedRole == 'OWNER',
-                                  selectedColor: AppColors.primarySurface,
-                                  labelStyle: TextStyle(
-                                    color: _selectedRole == 'OWNER' ? AppColors.primary : AppColors.textSecondary,
-                                    fontWeight: _selectedRole == 'OWNER' ? FontWeight.w700 : FontWeight.w500,
-                                  ),
-                                  side: BorderSide(
-                                    color: _selectedRole == 'OWNER' ? AppColors.primary : AppColors.border,
-                                  ),
-                                  onSelected: _isOwnerRegistered
-                                      ? null
-                                      : (selected) {
-                                          if (selected) setState(() => _selectedRole = 'OWNER');
-                                        },
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (_isOwnerRegistered) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              'Note: PG Owner account is already configured.',
-                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.warning),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                             ),
-                          ],
+                            child: Row(
+                              children: [
+                                const Icon(Icons.shield_outlined, color: AppColors.primary, size: 20),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Tenant Resident Registration (Requires Owner Approval)',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 24),
 
                           AppButton(
@@ -250,6 +236,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

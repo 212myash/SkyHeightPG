@@ -13,6 +13,7 @@ import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -146,16 +147,18 @@ class _OwnerPaymentsScreenState extends ConsumerState<OwnerPaymentsScreen> with 
         ),
         builder: (ctx) => StatefulBuilder(
           builder: (modalContext, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 24,
-                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-              ),
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
+            return KeyboardDismissible(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 24,
+                  bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+                ),
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Form(
+                    key: formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -214,8 +217,9 @@ class _OwnerPaymentsScreenState extends ConsumerState<OwnerPaymentsScreen> with 
                       const SizedBox(height: 14),
                       AppTextField(
                         controller: amountController,
-                        label: 'Cash Amount (₹) *',
+                        label: 'Cash Amount (₹)',
                         hint: 'e.g. 5000',
+                        isRequired: true,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         prefixIcon: Icons.currency_rupee_rounded,
                         validator: (v) => Validators.positiveNumber(v, 'Enter valid payment amount'),
@@ -283,8 +287,9 @@ class _OwnerPaymentsScreenState extends ConsumerState<OwnerPaymentsScreen> with 
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          );
+        },
         ),
       );
     } catch (e) {

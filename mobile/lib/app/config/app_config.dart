@@ -30,15 +30,7 @@ class AppConfig {
       final savedUrl = prefs.getString(_prefKeyBaseUrl);
       if (savedUrl != null && savedUrl.trim().isNotEmpty) {
         final clean = savedUrl.trim().replaceAll(RegExp(r'/+$'), '');
-        // Auto-migrate legacy local development URLs to live Render production
-        if (clean == 'http://127.0.0.1:$defaultPort' ||
-            clean == 'http://localhost:$defaultPort' ||
-            clean == 'http://$androidEmulatorHost:$defaultPort') {
-          await prefs.remove(_prefKeyBaseUrl);
-          _customBaseUrl = null;
-        } else {
-          _customBaseUrl = clean;
-        }
+        _customBaseUrl = clean;
       }
     } catch (_) {}
   }

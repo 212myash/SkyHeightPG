@@ -12,6 +12,7 @@ import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -82,43 +83,46 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (modalContext, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Raise a Complaint', style: AppTextStyles.h2),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(modalContext).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Report room maintenance, plumbing, wifi, or cleanliness issues directly to the owner.',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                    const SizedBox(height: 18),
-                    AppTextField(
-                      controller: titleController,
-                      label: 'Complaint Title *',
-                      hint: 'e.g. Geyser not heating water',
-                      prefixIcon: Icons.title_rounded,
-                      validator: (v) => Validators.required(v, 'Please enter a title'),
-                    ),
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Raise a Complaint', style: AppTextStyles.h2),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(modalContext).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Report room maintenance, plumbing, wifi, or cleanliness issues directly to the owner.',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                      const SizedBox(height: 18),
+                      AppTextField(
+                        controller: titleController,
+                        label: 'Complaint Title *',
+                        hint: 'e.g. Geyser not heating water',
+                        isRequired: true,
+                        prefixIcon: Icons.title_rounded,
+                        validator: (v) => Validators.required(v, 'Please enter a title'),
+                      ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
                       initialValue: selectedCategory,
@@ -161,6 +165,7 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                       controller: descController,
                       label: 'Detailed Description *',
                       hint: 'Describe the issue clearly...',
+                      isRequired: true,
                       maxLines: 4,
                       validator: (v) => Validators.required(v, 'Please describe the issue'),
                     ),
@@ -212,8 +217,9 @@ class _TenantComplaintsScreenState extends ConsumerState<TenantComplaintsScreen>
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

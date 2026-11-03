@@ -13,6 +13,7 @@ import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -93,89 +94,93 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (modalContext, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 24,
-              bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Submit UPI Payment', style: AppTextStyles.h2),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(modalContext).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Enter your 12-digit bank UPI transaction reference (UTR) for owner verification.',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                    const SizedBox(height: 18),
+          return KeyboardDismissible(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Submit UPI Payment', style: AppTextStyles.h2),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(modalContext).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Enter your 12-digit bank UPI transaction reference (UTR) for owner verification.',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                      const SizedBox(height: 18),
 
-                    if (_pendingBills.isNotEmpty) ...[
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedBillId,
-                        decoration: InputDecoration(
-                          labelText: 'Select Bill to Pay',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      if (_pendingBills.isNotEmpty) ...[
+                        DropdownButtonFormField<String>(
+                          initialValue: selectedBillId,
+                          decoration: InputDecoration(
+                            labelText: 'Select Bill to Pay',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          items: _pendingBills.map<DropdownMenuItem<String>>((b) {
+                            final month = b['billingMonth'] ?? 'Bill';
+                            final total = b['totalAmount'] ?? 0;
+                            final paid = b['paidAmount'] ?? 0;
+                            final due = total - paid;
+                            return DropdownMenuItem<String>(
+                              value: b['_id'].toString(),
+                              child: Text('$month (Due: ${CurrencyFormatter.format(due)})'),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setModalState(() {
+                                selectedBillId = val;
+                                final match = _pendingBills.firstWhere((b) => b['_id'].toString() == val);
+                                final due = ((match['totalAmount'] ?? 0) - (match['paidAmount'] ?? 0)).clamp(0, double.infinity);
+                                amountController.text = due > 0 ? due.toString() : '';
+                              });
+                            }
+                          },
                         ),
-                        items: _pendingBills.map<DropdownMenuItem<String>>((b) {
-                          final month = b['billingMonth'] ?? 'Bill';
-                          final total = b['totalAmount'] ?? 0;
-                          final paid = b['paidAmount'] ?? 0;
-                          final due = total - paid;
-                          return DropdownMenuItem<String>(
-                            value: b['_id'].toString(),
-                            child: Text('$month (Due: ${CurrencyFormatter.format(due)})'),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setModalState(() {
-                              selectedBillId = val;
-                              final match = _pendingBills.firstWhere((b) => b['_id'].toString() == val);
-                              final due = ((match['totalAmount'] ?? 0) - (match['paidAmount'] ?? 0)).clamp(0, double.infinity);
-                              amountController.text = due > 0 ? due.toString() : '';
-                            });
-                          }
-                        },
+                        const SizedBox(height: 14),
+                      ],
+
+                      AppTextField(
+                        controller: amountController,
+                        label: 'Amount Paid (₹)',
+                        hint: 'e.g. 8500',
+                        isRequired: true,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        prefixIcon: Icons.currency_rupee_rounded,
+                        validator: (v) => Validators.positiveNumber(v, 'Enter valid amount paid'),
                       ),
                       const SizedBox(height: 14),
-                    ],
-
-                    AppTextField(
-                      controller: amountController,
-                      label: 'Amount Paid (₹)',
-                      hint: 'e.g. 8500',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      prefixIcon: Icons.currency_rupee_rounded,
-                      validator: (v) => Validators.positiveNumber(v, 'Enter valid amount paid'),
-                    ),
-                    const SizedBox(height: 14),
-                    AppTextField(
-                      controller: utrController,
-                      label: '12-Digit UPI Ref / UTR Number',
-                      hint: 'e.g. 123456789012',
-                      prefixIcon: Icons.receipt_long_rounded,
-                      validator: (v) {
-                        if (v == null || v.trim().length < 6) {
-                          return 'Enter valid UPI transaction reference';
-                        }
-                        return null;
-                      },
-                    ),
+                      AppTextField(
+                        controller: utrController,
+                        label: '12-Digit UPI Ref / UTR Number',
+                        hint: 'e.g. 123456789012',
+                        isRequired: true,
+                        prefixIcon: Icons.receipt_long_rounded,
+                        validator: (v) {
+                          if (v == null || v.trim().length < 6) {
+                            return 'Enter valid UPI transaction reference';
+                          }
+                          return null;
+                        },
+                      ),
                     const SizedBox(height: 14),
                     AppTextField(
                       controller: notesController,
@@ -236,8 +241,9 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
                 ),
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

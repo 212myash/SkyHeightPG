@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import '../../app/config/app_config.dart';
+import '../notifications/app_notification_service.dart';
 import '../storage/secure_storage_service.dart';
 import 'api_exceptions.dart';
 
@@ -12,6 +14,7 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    options.baseUrl = AppConfig.baseUrl;
     options.headers['Content-Type'] = 'application/json';
     options.headers['Accept'] = 'application/json';
     options.headers['bypass-tunnel-reminder'] = 'true';
@@ -46,15 +49,30 @@ class AuthInterceptor extends Interceptor {
         apiException = TimeoutException(
           message: 'Connection timed out. If the cloud server is waking up from sleep, please try again in a moment.',
         );
+        AppNotificationService.showTopBanner(
+          message: 'Server timeout. Service may be waking up.',
+          type: NotificationType.warning,
+          actionLabel: 'Dismiss',
+        );
         break;
       case DioExceptionType.connectionError:
         apiException = NetworkException(
           message: 'Could not connect to Sky Height PG cloud server. Please verify your internet connection and try again.',
         );
+        AppNotificationService.showTopBanner(
+          message: 'Network offline. Please verify your internet connection.',
+          type: NotificationType.error,
+          actionLabel: 'Dismiss',
+        );
         break;
       case DioExceptionType.badResponse:
         if (statusCode == 401) {
           apiException = UnauthorizedException(message: errorMessage, data: data);
+          AppNotificationService.showTopBanner(
+            message: 'Session expired. Please log in again.',
+            type: NotificationType.warning,
+            actionLabel: 'Dismiss',
+          );
         } else if (statusCode == 403) {
           apiException = ForbiddenException(message: errorMessage, data: data);
         } else if (statusCode == 404) {

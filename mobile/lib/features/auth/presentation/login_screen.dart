@@ -1,16 +1,17 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/config/app_config.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/keyboard_aware_view.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -47,7 +48,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() => _isLoading = false);
       if (!success) {
         final errorMsg = ref.read(authProvider).errorMessage ?? 'Login failed. Please check your credentials.';
-        AppDialog.showSnackBar(context, errorMsg, isError: true);
+        final lower = errorMsg.toLowerCase();
+        if (lower.contains('pending') || lower.contains('approval')) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              icon: const Icon(Icons.hourglass_empty_rounded, color: AppColors.warning, size: 48),
+              title: const Text('Registration Pending Approval'),
+              content: Text(
+                errorMsg,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              ),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+                  child: const Text('I Understand'),
+                ),
+              ],
+            ),
+          );
+        } else if (lower.contains('rejected')) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              icon: const Icon(Icons.cancel_outlined, color: AppColors.error, size: 48),
+              title: const Text('Registration Not Approved'),
+              content: Text(
+                errorMsg,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              ),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          AppDialog.showSnackBar(context, errorMsg, isError: true);
+        }
       }
     }
   }
@@ -204,6 +248,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -215,9 +260,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
+      body: KeyboardDismissible(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
@@ -225,38 +271,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App Icon & Header
+                  // Official Sky Height Apartment Brand Header
                   Center(
                     child: Container(
-                      width: 72,
-                      height: 72,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withAlpha(60),
-                            blurRadius: 16,
+                            color: AppColors.primary.withAlpha(50),
+                            blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.apartment_rounded,
-                        color: Colors.white,
-                        size: 40,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: const AppBrandLogo.icon(height: 72, width: 72),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Welcome to Sky Height PG',
-                    style: AppTextStyles.h1.copyWith(fontSize: 24),
-                    textAlign: TextAlign.center,
+                  const SizedBox(height: 18),
+                  const Center(
+                    child: AppBrandLogo.primary(height: 36),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
-                    'Sign in to manage your PG or tenant dashboard',
+                    'Sign in to manage your apartment or tenant dashboard',
                     style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
@@ -290,39 +330,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             textInputAction: TextInputAction.done,
                             onSubmitted: (_) => _handleLogin(),
                           ),
-                          const SizedBox(height: 12),
-                          if (kDebugMode) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                  icon: const Icon(Icons.admin_panel_settings_outlined, size: 14),
-                                  label: const Text('Fill Owner', style: TextStyle(fontSize: 12)),
-                                  onPressed: () {
-                                    _emailController.text = 'owner_1793511029432@skyheight-test.com';
-                                    _passwordController.text = 'Password123';
-                                  },
-                                ),
-                                OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                  icon: const Icon(Icons.person_outline, size: 14),
-                                  label: const Text('Fill Tenant', style: TextStyle(fontSize: 12)),
-                                  onPressed: () {
-                                    _emailController.text = 'tenanta_1793511055378@skyheight-test.com';
-                                    _passwordController.text = 'Password123';
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                          ],
+                          const SizedBox(height: 24),
                           AppButton(
                             label: 'Sign In',
                             isLoading: _isLoading,
@@ -361,6 +369,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
