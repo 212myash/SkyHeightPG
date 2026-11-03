@@ -7,7 +7,9 @@ const {
   getRoomById,
   updateRoom,
   deleteRoom,
-  getOccupancyStats
+  getOccupancyStats,
+  getRoomTenants,
+  getRoomOccupancyHistory
 } = require("../controllers/roomController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -26,6 +28,12 @@ router.post("/", authorize("owner"), createRoom);
 
 // Get single room details
 router.get("/:id", getRoomById);
+
+// Get tenants in room
+router.get("/:id/tenants", getRoomTenants);
+
+// Get room occupancy history (Owner only)
+router.get("/:id/occupancy-history", authorize("owner"), getRoomOccupancyHistory);
 
 // Update room (Owner only)
 router.put("/:id", authorize("owner"), updateRoom);

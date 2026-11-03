@@ -14,7 +14,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 router.use(protect);
 
 // Current tenant's meter info
-router.get("/my-meter", authorize("tenant"), getMyMeterDetails);
+router.get(["/my-meter", "/my-room"], authorize("tenant"), getMyMeterDetails);
 
 // Monthly usage summary across PG (Owner only)
 router.get("/monthly-usage", authorize("owner"), getMonthlyUsageReport);

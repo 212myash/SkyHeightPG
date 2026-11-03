@@ -137,6 +137,10 @@ const getDashboardSummary = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5);
 
+    const occupancyRate = totalCapacity > 0
+      ? Math.round((occupiedBeds / totalCapacity) * 1000) / 10
+      : 0;
+
     return res.status(200).json({
       success: true,
       data: {
@@ -146,24 +150,43 @@ const getDashboardSummary = async (req, res) => {
           occupied: occupiedRooms,
           vacant: vacantRooms,
           totalCapacity,
+          totalBeds: totalCapacity,
           occupiedBeds,
-          availableBeds
+          availableBeds,
+          occupancyRate
+        },
+        occupancy: {
+          totalRooms,
+          occupiedRooms,
+          vacantRooms,
+          totalBeds: totalCapacity,
+          totalCapacity,
+          occupiedBeds,
+          availableBeds,
+          occupancyRate
         },
         tenants: {
-          active: totalTenants
+          active: totalTenants,
+          total: totalTenants
         },
         financials: {
           monthlyRentCollection: Math.round(monthlyRentCollection * 100) / 100,
+          totalCollected: Math.round(monthlyRentCollection * 100) / 100,
           pendingPayments,
+          pendingAmount: pendingPayments,
           monthlyExpenses: Math.round(monthlyExpenses * 100) / 100,
-          netIncome
+          totalExpenses: Math.round(monthlyExpenses * 100) / 100,
+          netIncome,
+          netProfit: netIncome
         },
         electricity: {
           unitsConsumed: Math.round(electricityUnits * 100) / 100,
+          totalUnits: Math.round(electricityUnits * 100) / 100,
           totalAmount: Math.round(electricityAmount * 100) / 100
         },
         complaints: {
-          open: openComplaints
+          open: openComplaints,
+          openComplaints
         },
         recentTransactions,
         recentComplaints

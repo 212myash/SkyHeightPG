@@ -18,7 +18,7 @@ router.use(protect);
 
 // Tenant routes
 router.get("/my-payments", authorize("tenant"), getMyPayments);
-router.post("/upi/submit", authorize("tenant"), paymentLimiter, submitUpiPayment);
+router.post(["/upi/submit", "/upi"], authorize("tenant"), paymentLimiter, submitUpiPayment);
 
 // Owner routes
 router.post("/cash", authorize("owner"), recordCashPayment);

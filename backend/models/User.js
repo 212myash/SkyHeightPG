@@ -40,6 +40,32 @@ const userSchema = new mongoose.Schema(
       default: "tenant"
     },
 
+    approvalStatus: {
+      type: String,
+      enum: {
+        values: ["pending", "approved", "rejected"],
+        message: "Approval status must be pending, approved, or rejected"
+      },
+      default: "approved"
+    },
+
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+
+    approvedAt: {
+      type: Date,
+      default: null
+    },
+
+    rejectionReason: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+
     isActive: {
       type: Boolean,
       default: true

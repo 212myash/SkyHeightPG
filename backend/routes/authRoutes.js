@@ -22,7 +22,7 @@ router.post("/register", authLimiter, optionalAuth, registerUser);
 router.post("/login", authLimiter, loginUser);
 
 // Profile API (Protected)
-router.get("/profile", protect, getProfile);
+router.get(["/profile", "/me"], protect, getProfile);
 
 // Change Password API (Protected)
 router.put("/change-password", protect, changePassword);

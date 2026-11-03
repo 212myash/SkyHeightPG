@@ -41,6 +41,24 @@ const protect = async (req, res, next) => {
       });
     }
 
+    // Check approval status for tenants
+    if (user.role === "tenant" && user.approvalStatus === "pending") {
+      return res.status(403).json({
+        success: false,
+        approvalStatus: "pending",
+        message: "Your registration is pending approval from the apartment Owner."
+      });
+    }
+
+    if (user.role === "tenant" && user.approvalStatus === "rejected") {
+      return res.status(403).json({
+        success: false,
+        approvalStatus: "rejected",
+        rejectionReason: user.rejectionReason || "",
+        message: `Your registration was rejected: ${user.rejectionReason || "Please contact the owner."}`
+      });
+    }
+
     req.user = user;
     next();
   } catch (error) {

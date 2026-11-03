@@ -1,6 +1,7 @@
 const MeterReading = require("../models/MeterReading");
 const Room = require("../models/Room");
 const Tenant = require("../models/Tenant");
+const Bill = require("../models/Bill");
 const PGSettings = require("../models/PGSettings");
 const { isValidObjectId } = require("../utils/validateObjectId");
 
@@ -122,6 +123,35 @@ const addMeterReading = async (req, res) => {
       remarks: remarks ? remarks.trim() : ""
     });
 
+    // Retroactive sync: If pending uncredited bills were generated before this meter reading,
+    // update their electricity portion and recalculate total amounts
+    try {
+      const pendingBills = await Bill.find({
+        room: roomId,
+        billingMonth: readingMonth,
+        paidAmount: 0,
+        $or: [{ electricityAmount: 0 }, { meterReading: null }, { meterReading: { $exists: false } }]
+      });
+
+      if (pendingBills.length > 0) {
+        const activeRoommatesCount = await Tenant.countDocuments({ room: roomId, status: "active" });
+        const divisor = Math.max(1, activeRoommatesCount || pendingBills.length);
+        const splitElec = Math.round((meterReading.electricityAmount / divisor) * 100) / 100;
+        const splitUnits = Math.round((meterReading.unitsConsumed / divisor) * 100) / 100;
+
+        for (const bill of pendingBills) {
+          bill.electricityAmount = splitElec;
+          bill.unitsConsumed = splitUnits;
+          bill.previousReading = meterReading.previousReading;
+          bill.currentReading = meterReading.currentReading;
+          bill.meterReading = meterReading._id;
+          await bill.save(); // triggers pre-save hook to recalculate totalAmount
+        }
+      }
+    } catch (billSyncErr) {
+      console.error("Retroactive Bill Sync Error in addMeterReading:", billSyncErr);
+    }
+
     return res.status(201).json({
       success: true,
       message: `Meter reading for Room ${room.roomNumber} recorded successfully.`,
@@ -215,6 +245,11 @@ const getMyMeterDetails = async (req, res) => {
           floor: tenant.room.floor
         },
         latestReading: latestReading || null,
+        unitsConsumed: latestReading ? latestReading.unitsConsumed : 0,
+        currentReading: latestReading ? latestReading.currentReading : 0,
+        previousReading: latestReading ? latestReading.previousReading : 0,
+        ratePerUnit: latestReading ? latestReading.ratePerUnit : 0,
+        electricityAmount: latestReading ? latestReading.electricityAmount : 0,
         history: recentHistory
       }
     });

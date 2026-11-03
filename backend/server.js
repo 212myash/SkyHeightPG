@@ -26,6 +26,9 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
+const registrationRoutes = require("./routes/registrationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 
@@ -85,6 +88,11 @@ app.use("/api/expenses", expenseRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/owner/registrations", registrationRoutes);
+app.use("/api/registrations", registrationRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/conversations", chatRoutes);
+app.use("/api/chat", chatRoutes);
 
 // 404 Not Found Handler
 app.use((req, res) => {

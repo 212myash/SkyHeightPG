@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Tenant = require("../models/Tenant");
+const Notification = require("../models/Notification");
 const generateToken = require("../utils/generateToken");
 
 /**
@@ -57,21 +59,24 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Owner-Only Registration Protection
+    // Owner-Only Registration Protection: public registration cannot create owner
     if (targetRole === "owner") {
       const ownerExists = await User.exists({ role: "owner" });
-
       if (ownerExists) {
-        // If an owner already exists, only an authenticated owner can create another owner
         if (!req.user || req.user.role !== "owner") {
           return res.status(403).json({
             success: false,
-            message: "Public registration as owner is not permitted. An owner account already exists."
+            message: "Public registration as Owner is not permitted. Only an existing Owner can create another Owner."
           });
         }
       }
-      // If owner does not exist, the first owner is allowed to register (Bootstrap)
     }
+
+    // Determine initial approval status:
+    // If registered by existing owner -> 'approved'
+    // Public tenant registrations -> 'pending'
+    const isOwnerInitiated = req.user && req.user.role === "owner";
+    const initialApprovalStatus = isOwnerInitiated || targetRole === "owner" ? "approved" : "pending";
 
     // Create user
     const user = await User.create({
@@ -80,14 +85,56 @@ const registerUser = async (req, res) => {
       password,
       phone: phone ? phone.trim() : "",
       role: targetRole,
+      approvalStatus: initialApprovalStatus,
+      approvedAt: initialApprovalStatus === "approved" ? new Date() : null,
+      approvedBy: isOwnerInitiated ? req.user._id : null,
       isActive: true
     });
 
-    const token = generateToken(user._id, user.role);
+    // If tenant, create unallocated Tenant profile if not exists
+    if (targetRole === "tenant") {
+      await Tenant.create({
+        user: user._id,
+        fullName: user.name,
+        email: user.email,
+        phone: user.phone || "0000000000",
+        room: null,
+        assignedBed: "",
+        monthlyRent: 0,
+        securityDeposit: 0,
+        status: initialApprovalStatus === "approved" ? "active" : "pending_allocation",
+        approvalStatus: initialApprovalStatus
+      });
+
+      // Send in-app notification to all active Owners about pending registration
+      if (initialApprovalStatus === "pending") {
+        try {
+          const owners = await User.find({ role: "owner", isActive: true });
+          for (const owner of owners) {
+            await Notification.create({
+              recipient: owner._id,
+              sender: user._id,
+              title: "New Registration Request",
+              message: `${user.name} (${user.email}) has registered and requires approval.`,
+              category: "registration_update",
+              audience: "tenant"
+            });
+          }
+        } catch (notifErr) {
+          console.error("Failed to notify owners of registration:", notifErr);
+        }
+      }
+    }
+
+    // If pending approval, do not issue an active session token
+    const token = initialApprovalStatus === "approved" ? generateToken(user._id, user.role) : null;
 
     return res.status(201).json({
       success: true,
-      message: "User registered successfully.",
+      message: initialApprovalStatus === "pending"
+        ? "Registration submitted successfully. Your account is pending approval by the owner."
+        : "User registered successfully.",
+      approvalStatus: initialApprovalStatus,
       token,
       user: {
         _id: user._id,
@@ -95,6 +142,7 @@ const registerUser = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        approvalStatus: user.approvalStatus,
         isActive: user.isActive,
         createdAt: user.createdAt
       }
@@ -154,6 +202,24 @@ const loginUser = async (req, res) => {
       });
     }
 
+    // Check approval status for tenants
+    if (user.role === "tenant" && user.approvalStatus === "pending") {
+      return res.status(403).json({
+        success: false,
+        approvalStatus: "pending",
+        message: "Your registration is pending approval from the apartment Owner."
+      });
+    }
+
+    if (user.role === "tenant" && user.approvalStatus === "rejected") {
+      return res.status(403).json({
+        success: false,
+        approvalStatus: "rejected",
+        rejectionReason: user.rejectionReason || "",
+        message: `Your registration was rejected: ${user.rejectionReason || "Please contact the owner."}`
+      });
+    }
+
     const token = generateToken(user._id, user.role);
 
     return res.status(200).json({
@@ -166,6 +232,7 @@ const loginUser = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        approvalStatus: user.approvalStatus,
         isActive: user.isActive,
         createdAt: user.createdAt
       }

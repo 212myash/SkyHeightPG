@@ -1,5 +1,7 @@
 const Complaint = require("../models/Complaint");
 const Tenant = require("../models/Tenant");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
 const { isValidObjectId } = require("../utils/validateObjectId");
 
 /**
@@ -35,6 +37,26 @@ const createComplaint = async (req, res) => {
       priority: priority || "medium",
       status: "open"
     });
+
+    // Send in-app notification to all active Owners
+    try {
+      const owners = await User.find({ role: "owner", isActive: true });
+      for (const owner of owners) {
+        await Notification.create({
+          recipient: owner._id,
+          sender: req.user._id,
+          title: `New Complaint: ${complaint.title}`,
+          message: `${tenant.fullName} has filed a ${complaint.priority} priority complaint (${complaint.category}).`,
+          category: "complaint_update",
+          audience: "tenant",
+          targetTenant: tenant._id,
+          targetRoom: tenant.room,
+          relatedComplaint: complaint._id
+        });
+      }
+    } catch (notifErr) {
+      console.error("Failed to notify owners of new complaint:", notifErr);
+    }
 
     return res.status(201).json({
       success: true,
@@ -209,7 +231,7 @@ const updateComplaintStatus = async (req, res) => {
       });
     }
 
-    const complaint = await Complaint.findById(id).populate("tenant", "fullName");
+    const complaint = await Complaint.findById(id).populate("tenant", "fullName user");
     if (!complaint) {
       return res.status(404).json({
         success: false,
@@ -228,6 +250,24 @@ const updateComplaintStatus = async (req, res) => {
     }
 
     await complaint.save();
+
+    // Send in-app notification to the tenant regarding complaint resolution/status change
+    try {
+      if (complaint.tenant && complaint.tenant.user) {
+        await Notification.create({
+          recipient: complaint.tenant.user,
+          sender: req.user._id,
+          title: `Complaint Updated: ${complaint.title}`,
+          message: `Your complaint status has been updated to '${status}'.${complaint.resolution ? ` Resolution notes: ${complaint.resolution}` : ""}`,
+          category: "complaint_update",
+          audience: "tenant",
+          targetTenant: complaint.tenant._id,
+          relatedComplaint: complaint._id
+        });
+      }
+    } catch (notifErr) {
+      console.error("Failed to notify tenant of complaint update:", notifErr);
+    }
 
     return res.status(200).json({
       success: true,

@@ -2,6 +2,7 @@ const Room = require("../models/Room");
 const Tenant = require("../models/Tenant");
 const Bill = require("../models/Bill");
 const MeterReading = require("../models/MeterReading");
+const OccupancyHistory = require("../models/OccupancyHistory");
 const { isValidObjectId } = require("../utils/validateObjectId");
 
 /**
@@ -11,12 +12,13 @@ const { isValidObjectId } = require("../utils/validateObjectId");
  */
 const createRoom = async (req, res) => {
   try {
-    const { roomNumber, floor, roomType, monthlyRent, capacity, amenities } = req.body;
+    const { roomNumber, floor, roomType, monthlyRent, capacity, maxOccupancy, amenities } = req.body;
+    const occLimit = maxOccupancy !== undefined ? Number(maxOccupancy) : (capacity !== undefined ? Number(capacity) : 2);
 
-    if (!roomNumber || floor === undefined || monthlyRent === undefined || capacity === undefined) {
+    if (!roomNumber || floor === undefined || monthlyRent === undefined) {
       return res.status(400).json({
         success: false,
-        message: "Please provide roomNumber, floor, monthlyRent, and capacity."
+        message: "Please provide roomNumber, floor, and monthlyRent."
       });
     }
 
@@ -31,10 +33,10 @@ const createRoom = async (req, res) => {
       });
     }
 
-    if (Number(capacity) < 1) {
+    if (occLimit < 1) {
       return res.status(400).json({
         success: false,
-        message: "Room capacity must be at least 1 bed."
+        message: "Room occupancy limit must be at least 1."
       });
     }
 
@@ -57,7 +59,8 @@ const createRoom = async (req, res) => {
       floor: Number(floor),
       roomType: roomType || "double",
       monthlyRent: Number(monthlyRent),
-      capacity: Number(capacity),
+      maxOccupancy: occLimit,
+      capacity: occLimit,
       occupiedBeds: 0,
       amenities: Array.isArray(amenities) ? amenities : [],
       status: "available",
@@ -112,16 +115,45 @@ const getAllRooms = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Fetch active tenants for all returned rooms
+    const roomIds = rooms.map((r) => r._id);
+    const activeTenants = await Tenant.find({ room: { $in: roomIds }, status: "active" })
+      .select("fullName phone email room");
+
+    const occupantMap = {};
+    for (const t of activeTenants) {
+      const rid = String(t.room);
+      if (!occupantMap[rid]) occupantMap[rid] = [];
+      occupantMap[rid].push({
+        _id: t._id,
+        fullName: t.fullName,
+        phone: t.phone,
+        email: t.email
+      });
+    }
+
+    const enrichedRooms = rooms.map((r) => {
+      const occupants = occupantMap[String(r._id)] || [];
+      const obj = r.toObject();
+      const maxOcc = r.maxOccupancy || r.capacity || 2;
+      obj.maxOccupancy = maxOcc;
+      obj.currentOccupancy = occupants.length;
+      obj.availableOccupancy = Math.max(0, maxOcc - occupants.length);
+      obj.occupants = occupants;
+      obj.occupantNames = occupants.map((o) => o.fullName);
+      return obj;
+    });
+
     return res.status(200).json({
       success: true,
-      count: rooms.length,
+      count: enrichedRooms.length,
       pagination: {
         total: totalRooms,
         page,
         pages: Math.ceil(totalRooms / limit),
         limit
       },
-      data: rooms
+      data: enrichedRooms
     });
   } catch (error) {
     console.error("Get All Rooms Error:", error);
@@ -162,12 +194,19 @@ const getRoomById = async (req, res) => {
       .select("fullName phone email assignedBed joiningDate")
       .populate("user", "name email");
 
+    const maxOcc = room.maxOccupancy || room.capacity || 2;
+    const currentOcc = tenants.length;
+
     return res.status(200).json({
       success: true,
       data: {
         ...room.toObject(),
-        availableBeds: Math.max(0, room.capacity - room.occupiedBeds),
-        tenants
+        maxOccupancy: maxOcc,
+        currentOccupancy: currentOcc,
+        availableOccupancy: Math.max(0, maxOcc - currentOcc),
+        availableBeds: Math.max(0, maxOcc - currentOcc),
+        tenants,
+        occupants: tenants
       }
     });
   } catch (error) {
@@ -188,7 +227,7 @@ const getRoomById = async (req, res) => {
 const updateRoom = async (req, res) => {
   try {
     const { id } = req.params;
-    const { roomNumber, floor, roomType, monthlyRent, capacity, amenities, status, isActive } = req.body;
+    const { roomNumber, floor, roomType, monthlyRent, capacity, maxOccupancy, amenities, status, isActive } = req.body;
 
     if (!isValidObjectId(id)) {
       return res.status(400).json({
@@ -220,22 +259,24 @@ const updateRoom = async (req, res) => {
       }
     }
 
-    // Validate new capacity against current occupants
-    if (capacity !== undefined) {
-      const newCapacity = Number(capacity);
-      if (newCapacity < 1) {
+    // Validate new capacity / maxOccupancy against current occupants
+    const newCap = maxOccupancy !== undefined ? Number(maxOccupancy) : (capacity !== undefined ? Number(capacity) : undefined);
+    if (newCap !== undefined) {
+      if (newCap < 1) {
         return res.status(400).json({
           success: false,
-          message: "Room capacity must be at least 1."
+          message: "Room occupancy limit must be at least 1."
         });
       }
-      if (newCapacity < room.occupiedBeds) {
+      const currentCount = room.occupiedBeds || 0;
+      if (newCap < currentCount) {
         return res.status(400).json({
           success: false,
-          message: `Cannot reduce capacity to ${newCapacity} because ${room.occupiedBeds} beds are currently occupied.`
+          message: `Cannot reduce occupancy to ${newCap} because ${currentCount} tenants are currently occupying this room.`
         });
       }
-      room.capacity = newCapacity;
+      room.maxOccupancy = newCap;
+      room.capacity = newCap;
     }
 
     if (floor !== undefined) {
@@ -388,11 +429,113 @@ const getOccupancyStats = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get active tenants in a specific room
+ * @route   GET /api/rooms/:id/tenants
+ * @access  Private (Owner / Tenant)
+ */
+const getRoomTenants = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Room ID format."
+      });
+    }
+
+    const room = await Room.findById(id);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found."
+      });
+    }
+
+    const tenants = await Tenant.find({ room: room._id, status: "active" })
+      .select("fullName phone email joiningDate monthlyRent")
+      .populate("user", "name email phone");
+
+    return res.status(200).json({
+      success: true,
+      count: tenants.length,
+      roomNumber: room.roomNumber,
+      maxOccupancy: room.maxOccupancy || room.capacity || 2,
+      currentOccupancy: tenants.length,
+      data: tenants
+    });
+  } catch (error) {
+    console.error("Get Room Tenants Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching room tenants.",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Get occupancy history for a specific room (historical & active occupants)
+ * @route   GET /api/rooms/:id/occupancy-history
+ * @access  Private (Owner only)
+ */
+const getRoomOccupancyHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Room ID format."
+      });
+    }
+
+    const room = await Room.findById(id);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found."
+      });
+    }
+
+    const history = await OccupancyHistory.find({ room: room._id })
+      .populate("tenant", "fullName phone email status")
+      .populate("recordedBy", "name email role")
+      .sort({ joiningDate: -1, createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: history.length,
+      data: {
+        room: {
+          _id: room._id,
+          roomNumber: room.roomNumber,
+          floor: room.floor,
+          maxOccupancy: room.maxOccupancy || room.capacity || 2,
+          currentOccupancy: room.occupiedBeds || 0,
+          status: room.status
+        },
+        history
+      }
+    });
+  } catch (error) {
+    console.error("Get Room Occupancy History Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching room occupancy history.",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createRoom,
   getAllRooms,
   getRoomById,
   updateRoom,
   deleteRoom,
-  getOccupancyStats
+  getOccupancyStats,
+  getRoomTenants,
+  getRoomOccupancyHistory
 };

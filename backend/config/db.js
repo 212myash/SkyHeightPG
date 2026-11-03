@@ -20,8 +20,13 @@ const connectDB = async () => {
     console.warn("MongoDB disconnected. Awaiting automatic reconnect...");
   });
 
-  await mongoose.connect(process.env.MONGODB_URI, options);
-  console.log("MongoDB Connected Successfully with hardened connection pool.");
+  let uri = process.env.MONGODB_URI;
+  if (process.env.ISOLATED_TEST === "true" && !uri.includes("skyheight_isolated_test")) {
+    uri = uri.endsWith("/") ? uri + "skyheight_isolated_test" : uri + "/skyheight_isolated_test";
+  }
+
+  await mongoose.connect(uri, options);
+  console.log(`MongoDB Connected Successfully to database [${mongoose.connection.name}] with hardened connection pool.`);
 };
 
 module.exports = connectDB;

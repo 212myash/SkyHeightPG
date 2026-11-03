@@ -12,7 +12,7 @@ const tenantSchema = new mongoose.Schema(
     room: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Room",
-      required: [true, "Assigned room is required"],
+      default: null,
       index: true
     },
 
@@ -68,7 +68,7 @@ const tenantSchema = new mongoose.Schema(
     assignedBed: {
       type: String,
       trim: true,
-      default: "Bed 1"
+      default: ""
     },
 
     emergencyContact: {
@@ -80,10 +80,26 @@ const tenantSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: {
-        values: ["active", "vacated", "notice_period"],
-        message: "Status must be active, vacated, or notice_period"
+        values: ["active", "vacated", "notice_period", "pending_allocation"],
+        message: "Status must be active, vacated, notice_period, or pending_allocation"
       },
-      default: "active",
+      default: "pending_allocation",
+      index: true
+    },
+
+    approvalStatus: {
+      type: String,
+      enum: {
+        values: ["pending", "approved", "rejected"],
+        message: "Approval status must be pending, approved, or rejected"
+      },
+      default: "approved",
+      index: true
+    },
+
+    vacatedAt: {
+      type: Date,
+      default: null,
       index: true
     }
   },
